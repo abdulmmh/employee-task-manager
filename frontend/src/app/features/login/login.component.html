@@ -1,0 +1,18 @@
+<main id="main-content" class="login-layout">
+  <section class="login-story">
+    <a class="brand brand-light" routerLink="/login"><img class="brand-mark" src="assets/etm-mark.svg" alt=""><span>ETM<small>Employee & Task Manager</small></span></a>
+    <div class="login-story-content"><span class="eyebrow">ONE WORKSPACE. CLEAR RESPONSIBILITIES.</span><h1>Good teams.<br>Great work.</h1><p>Bring your people, tasks and progress together in one focused workspace.</p>
+      <div class="story-features"><span><app-icon name="users"></app-icon> People, connected</span><span><app-icon name="tasks"></app-icon> Work, organized</span><span><app-icon name="check"></app-icon> Progress, visible</span></div>
+    </div><span class="login-story-footer">Employee & Task Management System</span>
+  </section>
+  <section class="login-form-panel">
+    <div class="login-card"><span class="login-emblem"><app-icon name="lock"></app-icon></span><span class="eyebrow">WELCOME BACK</span><h2>Sign in to your workspace</h2><p class="muted">Enter your email and password to continue.</p>
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="form-error" *ngIf="error" role="alert">{{ error }}</div>
+        <div class="mb-4"><label for="email" class="form-label">Email address</label><input id="email" type="email" class="form-control" formControlName="email" autocomplete="username" placeholder="you@example.com" [class.is-invalid]="form.get('email')?.touched && form.get('email')?.invalid" aria-describedby="email-error"><div id="email-error" class="invalid-feedback">Enter a valid email address.</div></div>
+        <div class="mb-4"><label for="password" class="form-label">Password</label><div class="password-field"><input id="password" [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password" autocomplete="current-password" placeholder="Enter your password" [attr.aria-invalid]="form.get('password')?.touched && form.get('password')?.invalid" aria-describedby="password-error"><button type="button" (click)="showPassword = !showPassword" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">{{ showPassword ? 'Hide' : 'Show' }}</button></div><small id="password-error" class="text-danger" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">Password is required.</small></div>
+        <button class="btn btn-primary w-100 login-submit" type="submit" [disabled]="busy"><span *ngIf="busy" class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{ busy ? 'Signing in…' : 'Sign in' }}<app-icon *ngIf="!busy" name="arrow"></app-icon></button>
+      </form><p class="login-help">Need access? Contact your administrator.</p>
+    </div><span class="login-copyright">A little clarity goes a long way.</span>
+  </section>
+</main>

@@ -1,0 +1,36 @@
+// Bootstrap's required foundations; application styles remain plain CSS.
+$enable-dark-mode: false;
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/variables-dark";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
+
+// Include the components the workspace uses instead of shipping all Bootstrap.
+@import "bootstrap/scss/root";
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+@import "bootstrap/scss/containers";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/tables";
+@import "bootstrap/scss/forms/labels";
+@import "bootstrap/scss/forms/form-text";
+@import "bootstrap/scss/forms/form-control";
+@import "bootstrap/scss/forms/form-select";
+@import "bootstrap/scss/forms/form-check";
+@import "bootstrap/scss/forms/input-group";
+@import "bootstrap/scss/forms/validation";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/spinners";
+@import "bootstrap/scss/helpers/visually-hidden";
+
+// Keep useful layout/form utilities; no carousel, tooltip or unrelated utilities.
+$workspace-utilities: ();
+@each $key in ("display", "width", "max-width", "height", "margin", "margin-x", "margin-y", "margin-top", "margin-bottom", "margin-start", "margin-end", "padding", "padding-x", "padding-y", "padding-top", "padding-bottom", "padding-start", "padding-end", "gap", "flex", "flex-direction", "flex-wrap", "justify-content", "align-items", "text-align", "color") {
+  @if map-has-key($utilities, $key) {
+    $workspace-utilities: map-merge($workspace-utilities, ($key: map-get($utilities, $key)));
+  }
+}
+$utilities: $workspace-utilities;
+@import "bootstrap/scss/utilities/api";
