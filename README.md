@@ -7,8 +7,10 @@ and Employee roles.
 
 The backend starter and MySQL schema are in place. The demo dataset has been
 prepared and manually imported: 12 users and 24 tasks across three teams.
-Authentication, backend database configuration, business features, and the Angular
-frontend are the next implementation steps.
+JPA entities and environment-based database configuration are implemented. Local
+backend startup with the configured database connection and schema validation has
+been verified. Authentication, business features, and the Angular frontend are the
+next implementation steps.
 
 ## Technology
 
@@ -59,10 +61,9 @@ sh ./mvnw compile
 The version command should report Maven 3.9.12 and Java 17. A successful compile
 ends with `BUILD SUCCESS` and writes generated files to `backend/target/`.
 
-Compilation verifies the starter's dependency resolution and Java source. It
-does not verify database connectivity or application startup. Database connection
-settings will be supplied through environment variables in the database setup
-step. Automated tests have not been added yet.
+Compilation verifies dependency resolution and Java source. It does not verify
+database connectivity or application startup. Automated tests have not been added
+yet.
 
 ## Database setup
 
@@ -78,6 +79,54 @@ three managers, eight employees) and 24 tasks across three teams.
 
 The backend database account is restricted to `SELECT`, `INSERT`, `UPDATE`, and
 `DELETE` on `taskdb.*`; schema setup uses a separate administrative account.
+
+## Backend runtime environment
+
+Export these variables into the shell that starts the backend, or configure them
+in your hosting service. `backend/.env.example` is a reference template; Spring
+Boot does not automatically load `.env` files.
+
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `PORT` | HTTP server port | `8080` |
+| `DB_HOST` | MySQL service hostname, without scheme or port | Required |
+| `DB_PORT` | MySQL service port | Required |
+| `DB_NAME` | Application database | `taskdb` |
+| `DB_USERNAME` | Restricted application database user | `etm_app` |
+| `DB_PASSWORD` | Password for that database user | Required |
+| `DB_TRUSTSTORE_URL` | File URI of the PKCS12 truststore containing the service CA | Required |
+| `DB_TRUSTSTORE_PASSWORD` | Truststore password | Required |
+
+Download the CA certificate from your database provider. Create a dedicated
+truststore once using the JDK's `keytool` (replace the example paths):
+
+```sh
+keytool -importcert -alias aiven-ca -file /path/to/aiven-ca.pem -keystore /path/to/aiven-truststore.p12 -storetype PKCS12
+```
+
+The command prompts for a new truststore password and certificate confirmation.
+Set `DB_TRUSTSTORE_PASSWORD` to that password. `DB_PASSWORD` remains the password
+for the database account. Use an absolute file URI for `DB_TRUSTSTORE_URL`, such
+as `file:///D:/certificates/aiven-truststore.p12` on Windows or
+`file:///etc/secrets/aiven-truststore.p12` on Linux. Mount the truststore as a
+deployment secret file when deploying; it is excluded from Git.
+
+The Connector/J configuration uses `VERIFY_IDENTITY` to check both certificate
+trust and the database hostname. It uses the explicit PKCS12 store and disables
+fallback to the system truststore. Hibernate validates the existing schema with
+`ddl-auto=validate`; SQL initialization is disabled. Database-generated timestamps
+are mapped back to the entities, and entity relationships use lazy loading.
+
+After setting the variables, start the backend from its directory:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Successful startup initializes the connection pool and JPA EntityManagerFactory,
+then logs `Started EtmApplication`. JWT login and application endpoints are not
+implemented yet; Spring Security's temporary development login is not the seeded
+application login.
 
 ## Demo application accounts
 
