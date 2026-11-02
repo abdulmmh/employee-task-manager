@@ -1,0 +1,26 @@
+{
+  "info": {
+    "name": "Employee Task Manager - Authentication",
+    "description": "Current authentication milestone. Run logins, then paste returned tokens into collection variables. Other required API workflows will be added as implemented.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8080"},
+    {"key": "adminToken", "value": ""},
+    {"key": "managerToken", "value": ""},
+    {"key": "employeeToken", "value": ""}
+  ],
+  "item": [
+    {"name": "Admin login - expect 200", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"email\":\"admin@demo.com\",\"password\":\"Admin@123\"}"}, "url": "{{baseUrl}}/api/auth/login"}},
+    {"name": "Manager login - expect 200", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"email\":\"manager@demo.com\",\"password\":\"Manager@123\"}"}, "url": "{{baseUrl}}/api/auth/login"}},
+    {"name": "Employee login - expect 200", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"email\":\"emp1@demo.com\",\"password\":\"Emp@123\"}"}, "url": "{{baseUrl}}/api/auth/login"}},
+    {"name": "Admin reads user - expect 200, no password", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/users/3"}},
+    {"name": "Manager denied user access - expect 403", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{managerToken}}"}], "url": "{{baseUrl}}/api/users/3"}},
+    {"name": "Employee denied user access - expect 403", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{employeeToken}}"}], "url": "{{baseUrl}}/api/users/3"}},
+    {"name": "Missing token - expect 401", "request": {"method": "GET", "header": [], "url": "{{baseUrl}}/api/users/3"}},
+    {"name": "Invalid token - expect 401", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer invalid-token"}], "url": "{{baseUrl}}/api/users/3"}},
+    {"name": "Wrong password - expect 401", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"email\":\"admin@demo.com\",\"password\":\"WrongPassword\"}"}, "url": "{{baseUrl}}/api/auth/login"}},
+    {"name": "Invalid input - expect 400", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"email\":\"invalid-email\",\"password\":\"\"}"}, "url": "{{baseUrl}}/api/auth/login"}},
+    {"name": "Admin reads absent user - expect 404", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/users/999"}}
+  ]
+}

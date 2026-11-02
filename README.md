@@ -9,8 +9,12 @@ The backend starter and MySQL schema are in place. The demo dataset has been
 prepared and manually imported: 12 users and 24 tasks across three teams.
 JPA entities and environment-based database configuration are implemented. Local
 backend startup with the configured database connection and schema validation has
-been verified. Authentication, business features, and the Angular frontend are the
-next implementation steps.
+been verified. Database-backed JWT login and an admin-only user detail endpoint
+are implemented; all 34 automated authentication/security tests pass. Live login
+and protected-user endpoint checks have been verified: admin access returns 200,
+manager/employee access returns 403, and missing authentication returns 401.
+Remaining business features and the Angular frontend are the next implementation
+steps.
 
 ## Technology
 
@@ -62,8 +66,9 @@ The version command should report Maven 3.9.12 and Java 17. A successful compile
 ends with `BUILD SUCCESS` and writes generated files to `backend/target/`.
 
 Compilation verifies dependency resolution and Java source. It does not verify
-database connectivity or application startup. Automated tests have not been added
-yet.
+database connectivity or application startup. Run authentication/security tests
+with `./mvnw test` (Windows: `.\mvnw.cmd test`). These use mocked repositories and
+do not connect to the cloud database.
 
 ## Database setup
 
@@ -96,6 +101,10 @@ Boot does not automatically load `.env` files.
 | `DB_PASSWORD` | Password for that database user | Required |
 | `DB_TRUSTSTORE_URL` | File URI of the PKCS12 truststore containing the service CA | Required |
 | `DB_TRUSTSTORE_PASSWORD` | Truststore password | Required |
+| `JWT_SECRET` | Base64-encoded signing key containing at least 32 random bytes | Required |
+| `JWT_ISSUER` | Expected token issuer | `employee-task-manager` |
+| `JWT_EXPIRATION_SECONDS` | Access token lifetime | `1800` |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated allowed frontend origins | `http://localhost:4200` |
 
 Download the CA certificate from your database provider. Create a dedicated
 truststore once using the JDK's `keytool` (replace the example paths):
@@ -124,15 +133,31 @@ After setting the variables, start the backend from its directory:
 ```
 
 Successful startup initializes the connection pool and JPA EntityManagerFactory,
-then logs `Started EtmApplication`. JWT login and application endpoints are not
-implemented yet; Spring Security's temporary development login is not the seeded
-application login.
+then logs `Started EtmApplication`. Set JWT_SECRET before startup. Persist the same
+signing secret in deployment settings; changing it invalidates existing tokens.
+The backend uses stateless Bearer authentication rather than a development form login.
+
+## Implemented API endpoints
+
+| Method | Path | Access |
+| --- | --- | --- |
+| POST | `/api/auth/login` | Public; JSON email/password; returns token, role, name |
+| GET | `/api/users/{id}` | ADMIN only; returns a user DTO without password/hash |
+
+Send protected requests with `Authorization: Bearer <token>`. Tokens use HS256 and
+validate signature, issuer and expiration. Current database role and active state
+are checked for every authenticated request. The admin-only service also uses
+`@PreAuthorize`. Other required endpoints will be added with the remaining features.
+
+Errors contain `timestamp`, `status`, `message`, and `fieldErrors`. Invalid credentials
+or tokens return 401; insufficient permissions return 403; input errors return 400.
+Frontend logout will remove the token; server-side token revocation and refresh
+tokens are not implemented.
 
 ## Demo application accounts
 
 These credentials are for the seeded application accounts. They are separate from
-the database connection credentials. Login functionality is the next implementation
-step.
+the database connection credentials. Login implementation awaits manual verification.
 
 | Role | Email | Password |
 | --- | --- | --- |
