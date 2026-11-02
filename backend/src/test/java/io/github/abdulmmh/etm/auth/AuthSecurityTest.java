@@ -5,9 +5,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,6 +24,7 @@ import io.github.abdulmmh.etm.security.SecurityConfiguration;
 import io.github.abdulmmh.etm.security.SecurityErrorHandler;
 import io.github.abdulmmh.etm.shared.error.ApiErrorWriter;
 import io.github.abdulmmh.etm.shared.error.GlobalExceptionHandler;
+import io.github.abdulmmh.etm.task.TaskRepository;
 import io.github.abdulmmh.etm.user.Role;
 import io.github.abdulmmh.etm.user.User;
 import io.github.abdulmmh.etm.user.UserController;
@@ -27,12 +32,19 @@ import io.github.abdulmmh.etm.user.UserRepository;
 import io.github.abdulmmh.etm.user.UserService;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.List;
+import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -78,6 +90,9 @@ class AuthSecurityTest {
 
     @MockitoBean
     private UserRepository userRepository;
+
+    @MockitoBean
+    private TaskRepository taskRepository;
 
     private User admin;
     private User employee;
@@ -290,6 +305,179 @@ class AuthSecurityTest {
     void methodAuthorizationAlsoProtectsCallsOutsideHttpController() {
         assertThatThrownBy(() -> userService.getUser(1L)).isInstanceOf(AccessDeniedException.class);
         verifyNoInteractions(userRepository);
+    }
+
+    @Test
+    void administratorCanListPaginatedUserDtos() throws Exception {
+        var page = new PageImpl<>(List.of(admin, employee), PageRequest.of(0, 10), 2);
+        when(userRepository.findAll(org.mockito.ArgumentMatchers.<Specification<User>>any(), any(Pageable.class)))
+            .thenReturn(page);
+
+        mvc.perform(get("/api/users").header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.content[0].password").doesNotExist());
+    }
+
+    @Test
+    void administratorCanCreateEmployeeWithBcryptPassword() throws Exception {
+        allowUserWrites();
+
+        mvc.perform(post("/api/users").header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"fullName":"New Employee","email":"new@demo.com","password":"Emp@123",
+                     "role":"EMPLOYEE","managerId":2}
+                    """))
+            .andExpect(status().isCreated())
+            .andExpect(header().string(HttpHeaders.LOCATION, "/api/users/13"))
+            .andExpect(jsonPath("$.managerId").value(2))
+            .andExpect(jsonPath("$.password").doesNotExist());
+
+        var saved = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).saveAndFlush(saved.capture());
+        org.assertj.core.api.Assertions.assertThat(
+            passwordEncoder.matches("Emp@123", saved.getValue().getPassword())).isTrue();
+    }
+
+    @Test
+    void administratorCanRegisterAdditionalAdminThroughAlias() throws Exception {
+        allowUserWrites();
+
+        mvc.perform(post("/api/auth/register")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin))
+                .contentType(MediaType.APPLICATION_JSON).content(newAdminJson()))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.role").value("ADMIN"))
+            .andExpect(jsonPath("$.password").doesNotExist());
+    }
+
+    @Test
+    void registrationIsNotPublic() throws Exception {
+        mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(newAdminJson()))
+            .andExpect(status().isUnauthorized());
+        verify(userRepository, never()).saveAndFlush(any(User.class));
+    }
+
+    @Test
+    void employeeCannotRegisterAdministrator() throws Exception {
+        mvc.perform(post("/api/auth/register")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(employee))
+                .contentType(MediaType.APPLICATION_JSON).content(newAdminJson()))
+            .andExpect(status().isForbidden());
+        verify(userRepository, never()).saveAndFlush(any(User.class));
+    }
+
+    @Test
+    void createRequestValidationRejectsMissingFields() throws Exception {
+        mvc.perform(post("/api/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin))
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.fieldErrors.fullName").isNotEmpty())
+            .andExpect(jsonPath("$.fieldErrors.password").isNotEmpty());
+        verify(userRepository, never()).saveAndFlush(any(User.class));
+    }
+
+    @Test
+    void duplicateEmailReturnsConflict() throws Exception {
+        allowUserWrites();
+        when(userRepository.existsByEmailIgnoreCase("admin2@demo.com")).thenReturn(true);
+
+        mvc.perform(post("/api/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin))
+                .contentType(MediaType.APPLICATION_JSON).content(newAdminJson()))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.status").value(409));
+    }
+
+    @Test
+    void databaseConstraintRaceAlsoReturnsConflict() throws Exception {
+        allowUserWrites();
+        doThrow(new DataIntegrityViolationException("Unique constraint"))
+            .when(userRepository).saveAndFlush(any(User.class));
+
+        mvc.perform(post("/api/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin))
+                .contentType(MediaType.APPLICATION_JSON).content(newAdminJson()))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value("Request conflicts with existing data."));
+    }
+
+    @Test
+    void editWithoutPasswordPreservesExistingCredential() throws Exception {
+        allowUserWrites();
+        String previousHash = employee.getPassword();
+
+        mvc.perform(put("/api/users/3")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"fullName":"Updated Employee","email":"emp1@demo.com",
+                     "role":"EMPLOYEE","managerId":2,"active":true}
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.fullName").value("Updated Employee"))
+            .andExpect(jsonPath("$.password").doesNotExist());
+
+        org.assertj.core.api.Assertions.assertThat(employee.getPassword()).isEqualTo(previousHash);
+    }
+
+    @Test
+    void deleteDeactivatesInsteadOfRemovingUser() throws Exception {
+        allowUserWrites();
+
+        mvc.perform(delete("/api/users/3")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin)))
+            .andExpect(status().isNoContent());
+
+        org.assertj.core.api.Assertions.assertThat(employee.isActive()).isFalse();
+        verify(userRepository, never()).delete(any(User.class));
+    }
+
+    @Test
+    void deleteLastActiveAdminReturnsConflict() throws Exception {
+        allowUserWrites();
+
+        mvc.perform(delete("/api/users/1")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin)))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.status").value(409));
+
+        org.assertj.core.api.Assertions.assertThat(admin.isActive()).isTrue();
+    }
+
+    private void allowUserWrites() {
+        when(userRepository.findActiveAdminsForUpdate(Role.ADMIN)).thenReturn(List.of(admin));
+        when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(admin));
+        when(userRepository.findByIdForUpdate(2L)).thenReturn(Optional.of(employee.getManager()));
+        when(userRepository.findByIdForUpdate(3L)).thenReturn(Optional.of(employee));
+        when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> {
+            User saved = invocation.getArgument(0);
+            if (saved.getId() == null) {
+                ReflectionTestUtils.setField(saved, "id", 13L);
+            }
+            return saved;
+        });
+    }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void creationAlsoRequiresAdminAtServiceBoundary() {
+        var request = new io.github.abdulmmh.etm.user.CreateUserRequest(
+            "Forbidden Admin", "forbidden@demo.com", "Admin@123", Role.ADMIN, null);
+
+        assertThatThrownBy(() -> userService.createUser(1L, request))
+            .isInstanceOf(AccessDeniedException.class);
+        verifyNoInteractions(userRepository);
+    }
+
+    private String newAdminJson() {
+        return """
+            {"fullName":"Second Admin","email":"admin2@demo.com",
+             "password":"Admin2@123","role":"ADMIN","managerId":null}
+            """;
     }
 
     private User user(long id, String email, String name, Role role, String password) {

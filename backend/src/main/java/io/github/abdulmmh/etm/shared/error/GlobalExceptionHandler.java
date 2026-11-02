@@ -5,6 +5,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -36,7 +38,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException exception,
             HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        return new ResponseEntity<>(ApiError.of(status, "Request body must contain valid JSON."), headers, status);
+        return new ResponseEntity<>(ApiError.of(status, "Request body contains invalid JSON or field values."), headers, status);
     }
 
     @Override
@@ -70,6 +72,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ApiError> handleAccessDeniedException(AccessDeniedException exception) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ApiError.of(HttpStatus.FORBIDDEN, "You do not have permission for this action."));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataConflict(DataIntegrityViolationException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiError.of(HttpStatus.CONFLICT, "Request conflicts with existing data."));
+    }
+
+    @ExceptionHandler(PessimisticLockingFailureException.class)
+    public ResponseEntity<ApiError> handleConcurrentUpdate(PessimisticLockingFailureException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiError.of(HttpStatus.CONFLICT, "Another update is in progress. Please retry."));
     }
 
     @ExceptionHandler(DataAccessException.class)
