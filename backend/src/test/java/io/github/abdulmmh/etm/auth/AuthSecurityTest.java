@@ -62,7 +62,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = {AuthController.class, UserController.class,
     io.github.abdulmmh.etm.task.TaskController.class,
     io.github.abdulmmh.etm.dashboard.DashboardController.class,
-    io.github.abdulmmh.etm.report.TaskReportController.class}, properties = {
+    io.github.abdulmmh.etm.report.TaskReportController.class,
+    io.github.abdulmmh.etm.team.TeamController.class}, properties = {
     "app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
     "app.jwt.issuer=employee-task-manager",
     "app.jwt.expiration-seconds=1800",
@@ -74,7 +75,8 @@ import org.springframework.test.web.servlet.MockMvc;
     io.github.abdulmmh.etm.task.TaskService.class,
     io.github.abdulmmh.etm.dashboard.DashboardService.class,
     io.github.abdulmmh.etm.report.TaskReportService.class,
-    io.github.abdulmmh.etm.report.TaskPdfRenderer.class})
+    io.github.abdulmmh.etm.report.TaskPdfRenderer.class,
+    io.github.abdulmmh.etm.team.TeamService.class})
 class AuthSecurityTest {
 
     @Autowired
@@ -601,6 +603,33 @@ class AuthSecurityTest {
 
     private String taskJson() {
         return "{\"title\":\"Test task\",\"priority\":\"HIGH\",\"assignedTo\":3}";
+    }
+
+    @Test
+    void employeeCannotReadTeamLookup() throws Exception {
+        mvc.perform(get("/api/team/employees")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(employee)))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void teamLookupRequiresAuthentication() throws Exception {
+        mvc.perform(get("/api/team/employees")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void managerTeamLookupReturnsOnlyIdNameDtos() throws Exception {
+        var manager = employee.getManager();
+        when(userRepository.findById(2L)).thenReturn(Optional.of(manager));
+        when(userRepository.findAll(any(Specification.class), any(Pageable.class)))
+            .thenReturn(new PageImpl<>(List.of(employee), PageRequest.of(0, 20), 1));
+        mvc.perform(get("/api/team/employees?managerId=5")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(manager)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].id").value(3))
+            .andExpect(jsonPath("$.content[0].name").value("Employee One"))
+            .andExpect(jsonPath("$.content[0].email").doesNotExist())
+            .andExpect(jsonPath("$.content[0].password").doesNotExist());
     }
 
     @Test
