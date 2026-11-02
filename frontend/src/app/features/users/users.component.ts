@@ -9,8 +9,8 @@ import { ToastService } from '../../shared/toast/toast.service';
 
 @Component({ selector: 'app-users', templateUrl: './users.component.html' })
 export class UsersComponent implements OnInit, OnDestroy {
-  readonly filters = this.fb.group({ search: [''], role: [''], active: [''] });
-  readonly form = this.fb.group({ fullName: ['', [Validators.required, Validators.maxLength(100)]], email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]], password: ['', passwordBytes], role: ['EMPLOYEE', Validators.required], managerId: [null, Validators.required], active: [true] });
+  readonly filters = this.fb.group({ search: [''], role: [''] });
+  readonly form = this.fb.group({ fullName: ['', [Validators.required, Validators.maxLength(100)]], email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]], password: ['', passwordBytes], role: ['EMPLOYEE', Validators.required], managerId: [null, Validators.required] });
   users: User[] = []; page = 0; readonly size = 10; total = 0; loading = false; error = ''; busy = false;
   editing?: User; editorOpen = false; formError = ''; managerName = ''; confirming?: User;
   readonly roles: Role[] = ['ADMIN', 'MANAGER', 'EMPLOYEE'];
@@ -22,15 +22,14 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
   get employeeRole(): boolean { return this.form.get('role')!.value === 'EMPLOYEE'; }
   filter(): void { this.page = 0; this.load(); }
-  get hasFilters(): boolean { return !!this.filters.get('search')!.value || !!this.filters.get('role')!.value || !!this.filters.get('active')!.value; }
-  clearFilters(): void { this.filters.reset({ search: '', role: '', active: '' }, { emitEvent: false }); this.filter(); }
+  get hasFilters(): boolean { return !!this.filters.get('search')!.value || !!this.filters.get('role')!.value; }
+  clearFilters(): void { this.filters.reset({ search: '', role: '' }, { emitEvent: false }); this.filter(); }
   changePage(page: number): void { this.page = page; this.load(); }
   load(): void {
     this.listRequest?.unsubscribe(); this.loading = true; this.error = '';
-    const values = this.filters.value as { search: string; role: string; active: string };
-    const query: Query = { page: this.page, size: this.size, search: values.search || '' };
+    const values = this.filters.value as { search: string; role: string };
+    const query: Query = { page: this.page, size: this.size, search: values.search || '', active: true };
     if (values.role) query['role'] = values.role;
-    if (values.active) query['active'] = values.active;
     this.listRequest = this.api.users(query).pipe(finalize(() => this.loading = false)).subscribe({
       next: result => { this.users = result.content; this.total = result.totalElements; if (!this.users.length && this.page > 0) { this.page--; this.load(); } },
       error: error => this.error = errorMessage(error)
@@ -38,7 +37,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
   open(user?: User): void {
     this.editing = user; this.managerName = ''; this.formError = '';
-    this.form.reset({ fullName: user?.fullName || '', email: user?.email || '', password: '', role: user?.role || 'EMPLOYEE', managerId: user?.managerId || null, active: user?.active ?? true });
+    this.form.reset({ fullName: user?.fullName || '', email: user?.email || '', password: '', role: user?.role || 'EMPLOYEE', managerId: user?.managerId || null });
     this.form.get('password')!.setValidators(user ? [passwordBytes] : [Validators.required, passwordBytes]);
     this.roleChanged(); this.form.get('password')!.updateValueAndValidity(); this.editorOpen = true;
   }
@@ -56,22 +55,23 @@ export class UsersComponent implements OnInit, OnDestroy {
   close(): void { if (!this.busy) { this.editorOpen = false; this.form.reset(); this.editing = undefined; } }
   save(): void {
     this.form.markAllAsTouched(); if (this.form.invalid || this.busy) return;
-    const input = this.form.value as UserInput;
+    const input = this.form.value as Omit<UserInput, 'active'>;
     if (!input.fullName.trim()) { this.form.get('fullName')!.setErrors({ required: true }); return; }
     this.busy = true; this.formError = '';
-    this.api.saveUser({ ...input, fullName: input.fullName.trim(), email: input.email.trim() }, this.editing?.id)
+    this.api.saveUser({ ...input, active: true, fullName: input.fullName.trim(), email: input.email.trim() }, this.editing?.id)
       .pipe(takeUntil(this.destroyed$), finalize(() => this.busy = false)).subscribe({
         next: () => { this.busy = false; this.close(); this.toast.show('success', 'User saved successfully.'); this.load(); },
         error: error => { applyServerErrors(this.form, error); this.formError = errorMessage(error); }
       });
   }
-  deactivate(): void {
+  deleteUser(): void {
     if (!this.confirming || this.busy) return;
     this.busy = true;
-    this.api.deactivate(this.confirming.id).pipe(takeUntil(this.destroyed$), finalize(() => this.busy = false)).subscribe({
-      next: () => { this.confirming = undefined; this.toast.show('success', 'User deactivated successfully.'); this.load(); },
+    this.api.deleteUser(this.confirming.id).pipe(takeUntil(this.destroyed$), finalize(() => this.busy = false)).subscribe({
+      next: () => { this.confirming = undefined; this.toast.show('success', 'User deleted successfully.'); this.load(); },
       error: error => { this.confirming = undefined; this.toast.show('error', errorMessage(error)); }
     });
   }
+  initials(name: string): string { return name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase(); }
   ngOnDestroy(): void { this.listRequest?.unsubscribe(); this.destroyed$.next(); this.destroyed$.complete(); }
 }

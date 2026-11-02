@@ -60,8 +60,10 @@ production use.
 
 ## Management/UI milestone (verification pending)
 
-Users support name/email search, role/account filters, pagination, create/edit,
-manager selection, optional password reset, deactivate confirmation and restore.
+Users support name/email search, role filters, pagination, create/edit, manager
+selection, optional password reset and Delete confirmation. The UI lists only
+active users. DELETE soft-deletes the backend record and revokes login while
+preserving task history; inactive/restore management controls are not exposed.
 Tasks support status/priority/current-active-assignee filters, pagination, details,
 assignment/editing, employee start/done transitions and ADMIN delete confirmation.
 Assignee/manager option lists are searchable and paginated, not capped to the
@@ -92,3 +94,15 @@ options are a usability choice; mandatory Users name/email search remains.
 User-run verification: all 25 frontend tests pass, production build456.32KB
 with no budget/CSS/engine warnings. Live dropdown/filter behavior checks remain
 pending. The subsequent Delete/list/details refinements have not been applied yet.
+
+## User list and task detail refinement (verification pending)
+
+The Users table now has compact identity rows, explicit Actions heading and
+Edit/Delete buttons. It always requests active=true so deleted accounts disappear
+from the list. Backend soft deletion, historical records and administrator/team
+safeguards remain unchanged. The UI no longer exposes account-state/restore
+controls. Tasks have a visible View details action that opens the existing
+read-only description/assignee/assigner/status/priority/deadline dialog.
+Three regression tests cover active-list scope, delete reload and safeguard errors.
+The current refinement passed all28 frontend tests and a456.46KB production
+build with no build warnings. The user confirmed the requested live UI checks.

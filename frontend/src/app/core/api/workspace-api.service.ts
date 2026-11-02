@@ -16,7 +16,7 @@ export class WorkspaceApiService {
     const { active, ...create } = input;
     return this.http.post<User>(`${environment.apiUrl}/users`, create);
   }
-  deactivate(id: number) { return this.http.delete<void>(`${environment.apiUrl}/users/${id}`); }
+  deleteUser(id: number) { return this.http.delete<void>(`${environment.apiUrl}/users/${id}`); }
   employees(params: Query) { return this.http.get<PageResponse<PersonOption>>(`${environment.apiUrl}/team/employees`, { params }); }
   tasks(params: Query) { return this.http.get<PageResponse<Task>>(`${environment.apiUrl}/tasks`, { params }); }
   saveTask(input: TaskInput, id?: number) {
