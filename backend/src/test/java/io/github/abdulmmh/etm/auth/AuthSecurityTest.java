@@ -59,7 +59,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {AuthController.class, UserController.class}, properties = {
+@WebMvcTest(controllers = {AuthController.class, UserController.class,
+    io.github.abdulmmh.etm.task.TaskController.class}, properties = {
     "app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
     "app.jwt.issuer=employee-task-manager",
     "app.jwt.expiration-seconds=1800",
@@ -67,7 +68,8 @@ import org.springframework.test.web.servlet.MockMvc;
 })
 @Import({SecurityConfiguration.class, JwtConfiguration.class, DatabaseUserDetailsService.class,
     DatabaseJwtAuthenticationConverter.class, JwtService.class, AuthService.class, UserService.class,
-    GlobalExceptionHandler.class, SecurityErrorHandler.class, ApiErrorWriter.class})
+    GlobalExceptionHandler.class, SecurityErrorHandler.class, ApiErrorWriter.class,
+    io.github.abdulmmh.etm.task.TaskService.class})
 class AuthSecurityTest {
 
     @Autowired
@@ -478,6 +480,122 @@ class AuthSecurityTest {
             {"fullName":"Second Admin","email":"admin2@demo.com",
              "password":"Admin2@123","role":"ADMIN","managerId":null}
             """;
+    }
+
+    @Test
+    void taskEndpointsRequireAuthentication() throws Exception {
+        mvc.perform(get("/api/tasks")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void employeeCannotCreateTask() throws Exception {
+        mvc.perform(post("/api/tasks").header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(employee))
+                .contentType(MediaType.APPLICATION_JSON).content(taskJson()))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminCreatesTaskWithServerControlledStatusAndAssigner() throws Exception {
+        allowUserWrites();
+        when(taskRepository.saveAndFlush(any(io.github.abdulmmh.etm.task.Task.class))).thenAnswer(call -> {
+            io.github.abdulmmh.etm.task.Task task = call.getArgument(0);
+            ReflectionTestUtils.setField(task, "id", 25L);
+            return task;
+        });
+        mvc.perform(post("/api/tasks").header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin))
+                .contentType(MediaType.APPLICATION_JSON).content(taskJson()))
+            .andExpect(status().isCreated())
+            .andExpect(header().string(HttpHeaders.LOCATION, "/api/tasks/25"))
+            .andExpect(jsonPath("$.assignedBy").value(1))
+            .andExpect(jsonPath("$.status").value("PENDING"))
+            .andExpect(jsonPath("$.password").doesNotExist());
+    }
+
+    @Test
+    void invalidTaskBodyReturnsFieldErrors() throws Exception {
+        mvc.perform(post("/api/tasks").header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"\",\"assignedTo\":0}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.fieldErrors.title").exists())
+            .andExpect(jsonPath("$.fieldErrors.assignedTo").exists());
+    }
+
+    @Test
+    void employeeCannotReadAnotherEmployeesTaskOverHttp() throws Exception {
+        var task = fixtureTask();
+        var other = new User();
+        ReflectionTestUtils.setField(other, "id", 6L);
+        task.setAssignedTo(other);
+        mvc.perform(get("/api/tasks/20").header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(employee)))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void employeeCanStartOwnTaskOverHttp() throws Exception {
+        fixtureTask();
+        when(taskRepository.saveAndFlush(any(io.github.abdulmmh.etm.task.Task.class)))
+            .thenAnswer(call -> call.getArgument(0));
+        mvc.perform(put("/api/tasks/20/status")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(employee))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"IN_PROGRESS\"}"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+    }
+
+    @Test
+    void skippedTaskStatusReturns409OverHttp() throws Exception {
+        fixtureTask();
+        mvc.perform(put("/api/tasks/20/status")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(employee))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"DONE\"}"))
+            .andExpect(status().isConflict());
+    }
+
+    @Test
+    void adminCannotUseEmployeeStatusEndpoint() throws Exception {
+        mvc.perform(put("/api/tasks/20/status")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"DONE\"}"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void managerCannotDeleteTaskOverHttp() throws Exception {
+        var manager = employee.getManager();
+        manager.setActive(true);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(manager));
+        mvc.perform(delete("/api/tasks/20")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(manager)))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminDeletesTaskOverHttp() throws Exception {
+        fixtureTask();
+        mvc.perform(delete("/api/tasks/20").header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin)))
+            .andExpect(status().isNoContent());
+        verify(taskRepository).delete(any(io.github.abdulmmh.etm.task.Task.class));
+    }
+
+    @Test
+    void invalidTaskFilterReturns400() throws Exception {
+        mvc.perform(get("/api/tasks?status=INVALID")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin)))
+            .andExpect(status().isBadRequest());
+    }
+
+    private io.github.abdulmmh.etm.task.Task fixtureTask() {
+        var task = new io.github.abdulmmh.etm.task.Task();
+        ReflectionTestUtils.setField(task, "id", 20L);
+        task.setTitle("Test task");
+        task.setAssignedBy(admin);
+        task.setAssignedTo(employee);
+        when(taskRepository.findById(20L)).thenReturn(Optional.of(task));
+        when(taskRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(task));
+        return task;
+    }
+
+    private String taskJson() {
+        return "{\"title\":\"Test task\",\"priority\":\"HIGH\",\"assignedTo\":3}";
     }
 
     private User user(long id, String email, String name, Role role, String password) {
