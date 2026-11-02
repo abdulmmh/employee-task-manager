@@ -8,11 +8,26 @@ import org.springframework.data.jpa.repository.Lock;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import java.util.List;
+import io.github.abdulmmh.etm.report.TaskReportRow;
 import io.github.abdulmmh.etm.user.Role;
 
 public interface TaskRepository extends JpaRepository<Task, Long>, JpaSpecificationExecutor<Task> {
 
+    @Query("""
+        select new io.github.abdulmmh.etm.report.TaskReportRow(
+            t.id, t.title, employee.fullName, assigner.fullName, t.status, t.priority, t.deadline)
+        from Task t join t.assignedTo employee join t.assignedBy assigner order by t.id
+        """)
+    List<TaskReportRow> findAllReportRows();
 
+    @Query("""
+        select new io.github.abdulmmh.etm.report.TaskReportRow(
+            t.id, t.title, employee.fullName, assigner.fullName, t.status, t.priority, t.deadline)
+        from Task t join t.assignedTo employee join t.assignedBy assigner
+        where employee.manager.id = :managerId and employee.role = :employeeRole order by t.id
+        """)
+    List<TaskReportRow> findTeamReportRows(@Param("managerId") long managerId,
+                                         @Param("employeeRole") Role employeeRole);
 
     @Query("select t.status as status, count(t) as total from Task t group by t.status")
     List<TaskStatusCount> countAllByStatus();

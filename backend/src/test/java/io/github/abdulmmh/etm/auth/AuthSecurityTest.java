@@ -61,7 +61,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = {AuthController.class, UserController.class,
     io.github.abdulmmh.etm.task.TaskController.class,
-    io.github.abdulmmh.etm.dashboard.DashboardController.class}, properties = {
+    io.github.abdulmmh.etm.dashboard.DashboardController.class,
+    io.github.abdulmmh.etm.report.TaskReportController.class}, properties = {
     "app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
     "app.jwt.issuer=employee-task-manager",
     "app.jwt.expiration-seconds=1800",
@@ -71,7 +72,9 @@ import org.springframework.test.web.servlet.MockMvc;
     DatabaseJwtAuthenticationConverter.class, JwtService.class, AuthService.class, UserService.class,
     GlobalExceptionHandler.class, SecurityErrorHandler.class, ApiErrorWriter.class,
     io.github.abdulmmh.etm.task.TaskService.class,
-    io.github.abdulmmh.etm.dashboard.DashboardService.class})
+    io.github.abdulmmh.etm.dashboard.DashboardService.class,
+    io.github.abdulmmh.etm.report.TaskReportService.class,
+    io.github.abdulmmh.etm.report.TaskPdfRenderer.class})
 class AuthSecurityTest {
 
     @Autowired
@@ -598,6 +601,45 @@ class AuthSecurityTest {
 
     private String taskJson() {
         return "{\"title\":\"Test task\",\"priority\":\"HIGH\",\"assignedTo\":3}";
+    }
+
+    @Test
+    void reportRequiresAuthentication() throws Exception {
+        mvc.perform(get("/api/reports/tasks/pdf")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void employeeCannotDownloadReport() throws Exception {
+        mvc.perform(get("/api/reports/tasks/pdf")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(employee)))
+            .andExpect(status().isForbidden());
+        verify(taskRepository, never()).findAllReportRows();
+    }
+
+    @Test
+    void adminDownloadsPdfAttachmentWithoutCaching() throws Exception {
+        mvc.perform(get("/api/reports/tasks/pdf")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin)))
+            .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "application/pdf"))
+            .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"tasks-report.pdf\""))
+            .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
+            .andExpect(result -> org.assertj.core.api.Assertions.assertThat(
+                result.getResponse().getContentAsByteArray()).startsWith("%PDF-".getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
+        verify(taskRepository).findAllReportRows();
+    }
+
+    @Test
+    void managerReportUsesCurrentTeamAndCannotOverrideScope() throws Exception {
+        var manager = employee.getManager();
+        manager.setFullName("Manager One");
+        when(userRepository.findById(2L)).thenReturn(Optional.of(manager));
+        mvc.perform(get("/api/reports/tasks/pdf?managerId=5&role=ADMIN")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(manager)))
+            .andExpect(status().isOk());
+        verify(taskRepository).findTeamReportRows(2L, Role.EMPLOYEE);
+        verify(taskRepository, never()).findAllReportRows();
+        verify(taskRepository, never()).findTeamReportRows(5L, Role.EMPLOYEE);
     }
 
     @Test
