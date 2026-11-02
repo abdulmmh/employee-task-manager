@@ -60,7 +60,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = {AuthController.class, UserController.class,
-    io.github.abdulmmh.etm.task.TaskController.class}, properties = {
+    io.github.abdulmmh.etm.task.TaskController.class,
+    io.github.abdulmmh.etm.dashboard.DashboardController.class}, properties = {
     "app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
     "app.jwt.issuer=employee-task-manager",
     "app.jwt.expiration-seconds=1800",
@@ -69,7 +70,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({SecurityConfiguration.class, JwtConfiguration.class, DatabaseUserDetailsService.class,
     DatabaseJwtAuthenticationConverter.class, JwtService.class, AuthService.class, UserService.class,
     GlobalExceptionHandler.class, SecurityErrorHandler.class, ApiErrorWriter.class,
-    io.github.abdulmmh.etm.task.TaskService.class})
+    io.github.abdulmmh.etm.task.TaskService.class,
+    io.github.abdulmmh.etm.dashboard.DashboardService.class})
 class AuthSecurityTest {
 
     @Autowired
@@ -596,6 +598,55 @@ class AuthSecurityTest {
 
     private String taskJson() {
         return "{\"title\":\"Test task\",\"priority\":\"HIGH\",\"assignedTo\":3}";
+    }
+
+    @Test
+    void dashboardRequiresAuthentication() throws Exception {
+        mvc.perform(get("/api/dashboard/stats")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void adminDashboardShowsGlobalUserCounts() throws Exception {
+        when(userRepository.count()).thenReturn(13L);
+        when(userRepository.countByActiveTrue()).thenReturn(12L);
+        mvc.perform(get("/api/dashboard/stats")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.role").value("ADMIN"))
+            .andExpect(jsonPath("$.totalUsers").value(13))
+            .andExpect(jsonPath("$.activeUsers").value(12))
+            .andExpect(jsonPath("$.teamSize").doesNotExist());
+    }
+
+    @Test
+    void managerDashboardOmitsGlobalUserCounts() throws Exception {
+        var manager = employee.getManager();
+        when(userRepository.findById(2L)).thenReturn(Optional.of(manager));
+        when(userRepository.countByManagerIdAndRoleAndActiveTrue(2L, Role.EMPLOYEE)).thenReturn(3L);
+        mvc.perform(get("/api/dashboard/stats")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(manager)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.teamSize").value(3))
+            .andExpect(jsonPath("$.totalUsers").doesNotExist())
+            .andExpect(jsonPath("$.activeUsers").doesNotExist());
+        verify(taskRepository).countByAssignerStatus(2L);
+        verify(taskRepository, never()).countAllByStatus();
+    }
+
+    @Test
+    void employeeDashboardIgnoresClientRoleAndUserIdAndReturnsOwnScope() throws Exception {
+        mvc.perform(get("/api/dashboard/stats?role=ADMIN&userId=1")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(employee)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.role").value("EMPLOYEE"))
+            .andExpect(jsonPath("$.totalTasks").value(0))
+            .andExpect(jsonPath("$.tasksByStatus.pending").value(0))
+            .andExpect(jsonPath("$.tasksByStatus.inProgress").value(0))
+            .andExpect(jsonPath("$.tasksByStatus.done").value(0))
+            .andExpect(jsonPath("$.totalUsers").doesNotExist())
+            .andExpect(jsonPath("$.teamSize").doesNotExist());
+        verify(taskRepository).countByAssigneeStatus(3L);
+        verify(taskRepository, never()).countAllByStatus();
     }
 
     private User user(long id, String email, String name, Role role, String password) {

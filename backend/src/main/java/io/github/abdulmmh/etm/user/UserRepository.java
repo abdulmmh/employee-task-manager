@@ -19,7 +19,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     boolean existsByManagerIdAndActiveTrue(long managerId);
 
+    long countByActiveTrue();
 
+    long countByManagerIdAndRoleAndActiveTrue(long managerId, Role role);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from User u where u.id = :id")

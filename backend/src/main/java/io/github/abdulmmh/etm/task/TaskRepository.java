@@ -14,8 +14,14 @@ public interface TaskRepository extends JpaRepository<Task, Long>, JpaSpecificat
 
 
 
+    @Query("select t.status as status, count(t) as total from Task t group by t.status")
+    List<TaskStatusCount> countAllByStatus();
 
+    @Query("select t.status as status, count(t) as total from Task t where t.assignedBy.id = :id group by t.status")
+    List<TaskStatusCount> countByAssignerStatus(@Param("id") long id);
 
+    @Query("select t.status as status, count(t) as total from Task t where t.assignedTo.id = :id group by t.status")
+    List<TaskStatusCount> countByAssigneeStatus(@Param("id") long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select t from Task t where t.id = :id")
