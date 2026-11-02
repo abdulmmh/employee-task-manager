@@ -14,6 +14,7 @@ export class ModalComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void { (this.focusable()[0] || this.element.nativeElement.querySelector<HTMLElement>('[role="dialog"]'))?.focus(); }
   backdrop(event: MouseEvent): void { if (event.target === event.currentTarget && !this.busy) this.closed.emit(); }
   @HostListener('document:keydown', ['$event']) keyboard(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && this.element.nativeElement.querySelector('.picker-expanded')) return;
     if (event.key === 'Escape' && !this.busy) { event.preventDefault(); this.closed.emit(); }
     if (event.key !== 'Tab') return;
     const items = this.focusable();

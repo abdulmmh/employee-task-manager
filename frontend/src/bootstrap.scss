@@ -10,9 +10,6 @@ $enable-dark-mode: false;
 // Include the components the workspace uses instead of shipping all Bootstrap.
 @import "bootstrap/scss/root";
 @import "bootstrap/scss/reboot";
-@import "bootstrap/scss/type";
-@import "bootstrap/scss/containers";
-@import "bootstrap/scss/grid";
 @import "bootstrap/scss/tables";
 @import "bootstrap/scss/forms/labels";
 @import "bootstrap/scss/forms/form-text";
@@ -26,11 +23,9 @@ $enable-dark-mode: false;
 @import "bootstrap/scss/helpers/visually-hidden";
 
 // Keep useful layout/form utilities; no carousel, tooltip or unrelated utilities.
-$workspace-utilities: ();
-@each $key in ("display", "width", "max-width", "height", "margin", "margin-x", "margin-y", "margin-top", "margin-bottom", "margin-start", "margin-end", "padding", "padding-x", "padding-y", "padding-top", "padding-bottom", "padding-start", "padding-end", "gap", "flex", "flex-direction", "flex-wrap", "justify-content", "align-items", "text-align", "color") {
-  @if map-has-key($utilities, $key) {
-    $workspace-utilities: map-merge($workspace-utilities, ($key: map-get($utilities, $key)));
-  }
-}
-$utilities: $workspace-utilities;
+$utilities: (
+  "width": (property: width, class: w, values: (100: 100%)),
+  "margin-bottom": (property: margin-bottom, class: mb, values: (4: map-get($spacers, 4))),
+  "color": (property: color, class: text, values: ("danger": $danger))
+);
 @import "bootstrap/scss/utilities/api";

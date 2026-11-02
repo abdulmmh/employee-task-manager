@@ -22,6 +22,8 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
   get employeeRole(): boolean { return this.form.get('role')!.value === 'EMPLOYEE'; }
   filter(): void { this.page = 0; this.load(); }
+  get hasFilters(): boolean { return !!this.filters.get('search')!.value || !!this.filters.get('role')!.value || !!this.filters.get('active')!.value; }
+  clearFilters(): void { this.filters.reset({ search: '', role: '', active: '' }, { emitEvent: false }); this.filter(); }
   changePage(page: number): void { this.page = page; this.load(); }
   load(): void {
     this.listRequest?.unsubscribe(); this.loading = true; this.error = '';

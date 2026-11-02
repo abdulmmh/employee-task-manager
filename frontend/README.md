@@ -81,3 +81,14 @@ URLs are retained while previews are open and released when their tabs close.
 User-run management milestone: production build499.89KB, no engine/CSS/budget
 warnings and18 frontend tests passed. Backend team-lookup tests also pass within
 the152-test suite. Live management/browser checks and deployment remain pending.
+
+## Dropdown/filter correction (verification pending)
+
+Person selection now uses a single searchable popover with direct option buttons,
+selection/outside/Escape close, empty state and a10-second retry timeout. It no
+longer nests a native select inside a filter popover. Users/Tasks each have one
+Clear filters action that resets the complete filter set and pagination. Searchable
+options are a usability choice; mandatory Users name/email search remains.
+User-run verification: all 25 frontend tests pass, production build456.32KB
+with no budget/CSS/engine warnings. Live dropdown/filter behavior checks remain
+pending. The subsequent Delete/list/details refinements have not been applied yet.

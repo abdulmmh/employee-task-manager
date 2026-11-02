@@ -8,6 +8,7 @@ import { Component, Input } from '@angular/core';
 export class IconComponent {
   @Input() name = 'tasks';
   readonly paths: Record<string, string> = {
+    chevron: 'M6 9l6 6 6-6',
     dashboard: 'M3 10 12 3l9 7v10H3V10Zm6 10v-7h6v7',
     users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M15 3.13a4 4 0 0 1 0 7.75M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
     tasks: 'M9 3H5v18h14V3h-4M9 2h6v4H9V2Zm-1 9 2 2 5-5m-7 9h7',

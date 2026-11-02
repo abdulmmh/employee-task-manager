@@ -32,7 +32,8 @@ export class TasksComponent implements OnInit, OnDestroy {
   }
   filter(): void { this.page = 0; this.load(); }
   selectFilter(option: PersonOption | null): void { this.assigneeFilter = option; this.filter(); }
-  clearAssignee(): void { this.assigneeFilter = null; this.filter(); }
+  get hasFilters(): boolean { return !!this.assigneeFilter || !!this.filters.get('status')!.value || !!this.filters.get('priority')!.value; }
+  clearFilters(): void { this.filters.reset({ status: '', priority: '' }); this.assigneeFilter = null; this.filter(); }
   changePage(page: number): void { this.page = page; this.load(); }
   load(): void {
     this.listRequest?.unsubscribe(); this.loading = true; this.error = '';
