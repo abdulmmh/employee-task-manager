@@ -1,0 +1,26 @@
+erDiagram
+    users o|--o{ users : "manager_id references id"
+    users ||--o{ tasks : "assigned_to references id"
+    users ||--o{ tasks : "assigned_by references id"
+    users {
+        BIGINT id PK "NOT NULL AUTO_INCREMENT"
+        VARCHAR_100 full_name "NOT NULL"
+        VARCHAR_150 email UK "NOT NULL"
+        VARCHAR_255 password "NOT NULL BCrypt hash"
+        ENUM role "NOT NULL ADMIN | MANAGER | EMPLOYEE"
+        BIGINT manager_id FK "NULL; required for EMPLOYEE only"
+        DATETIME created_at "NOT NULL DEFAULT CURRENT_TIMESTAMP"
+        BOOLEAN active "NOT NULL DEFAULT TRUE"
+    }
+    tasks {
+        BIGINT id PK "NOT NULL AUTO_INCREMENT"
+        VARCHAR_200 title "NOT NULL"
+        TEXT description "NULL"
+        ENUM status "NOT NULL DEFAULT PENDING; PENDING | IN_PROGRESS | DONE"
+        ENUM priority "NOT NULL DEFAULT MEDIUM; LOW | MEDIUM | HIGH"
+        DATE deadline "NULL"
+        BIGINT assigned_to FK "NOT NULL"
+        BIGINT assigned_by FK "NOT NULL; original assigner"
+        DATETIME created_at "NOT NULL DEFAULT CURRENT_TIMESTAMP"
+        DATETIME updated_at "NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+    }

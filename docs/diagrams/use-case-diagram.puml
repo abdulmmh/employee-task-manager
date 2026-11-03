@@ -1,0 +1,49 @@
+@startuml
+title Employee & Task Management System — Use Cases
+left to right direction
+actor "Authenticated user" as User
+actor ADMIN as Admin
+actor MANAGER as Manager
+actor EMPLOYEE as Employee
+User <|-- Admin
+User <|-- Manager
+User <|-- Employee
+rectangle "Employee & Task Management System" {
+  usecase "Sign in / sign out" as Login
+  usecase "View scoped dashboard" as Dashboard
+  usecase "View task list and details" as View
+  usecase "Create / view / edit / delete users" as Users
+  usecase "Create / edit / delete any task" as AllTasks
+  usecase "Download all-task PDF report" as AllPdf
+  usecase "Assign tasks to own team" as Assign
+  usecase "Edit own-assigned tasks" as Edit
+  usecase "Download current-team PDF report" as TeamPdf
+  usecase "View own assigned tasks" as Own
+  usecase "Start own task\nPENDING to IN_PROGRESS" as Start
+  usecase "Complete own task\nIN_PROGRESS to DONE" as Done
+}
+User -- Login
+User -- Dashboard
+User -- View
+Admin -- Users
+Admin -- AllTasks
+Admin -- AllPdf
+Manager -- Assign
+Manager -- Edit
+Manager -- TeamPdf
+Employee -- Own
+Employee -- Start
+Employee -- Done
+note bottom of TeamPdf
+Includes tasks assigned by ADMIN to current team employees.
+Task list/dashboard show only the manager's original assignments.
+Report access does not grant editing permission.
+end note
+note bottom of Users
+Delete sets active=false and preserves task history.
+end note
+note bottom of Login
+Sign-out clears browser session; no token revocation endpoint.
+Protected actions require valid JWT and current active DB account.
+end note
+@enduml

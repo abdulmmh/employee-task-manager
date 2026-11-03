@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1510 1080" role="img" aria-labelledby="title desc">
+<title id="title">Entity Relationship Diagram — taskdb</title><desc id="desc">Physical MySQL schema | PK = primary key, FK = foreign key, UK = unique key. Cardinalities use min..max.</desc>
+<rect width="1510" height="1080" fill="#f5f8fc"/>
+<text x="40" y="57.6" fill="#142b49" font-family="Arial, sans-serif" font-size="30" font-weight="700">Entity Relationship Diagram — taskdb</text>
+<text x="40" y="90.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">Physical MySQL schema | PK = primary key, FK = foreign key, UK = unique key. Cardinalities use min..max.</text>
+<rect x="185" y="155" width="535" height="296" fill="white" stroke="#b7c9da" stroke-width="2"/>
+<rect x="185" y="155" width="535" height="48" fill="#e6f3f5" stroke="#b7c9da" stroke-width="2"/>
+<text x="424.0" y="186.32" fill="#142b49" font-family="Arial, sans-serif" font-size="21" font-weight="700">users</text>
+<text x="202" y="231.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">PK  id BIGINT NOT NULL AUTO_INCREMENT</text>
+<text x="202" y="260.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">full_name VARCHAR(100) NOT NULL</text>
+<text x="202" y="289.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">UK  email VARCHAR(150) NOT NULL</text>
+<text x="202" y="318.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">password VARCHAR(255) NOT NULL</text>
+<text x="202" y="347.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">role ENUM NOT NULL</text>
+<text x="202" y="376.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">FK  manager_id BIGINT NULL</text>
+<text x="202" y="405.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">created_at DATETIME NOT NULL [default now]</text>
+<text x="202" y="434.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">active BOOLEAN NOT NULL [default true]</text>
+<rect x="930" y="155" width="540" height="354" fill="white" stroke="#b7c9da" stroke-width="2"/>
+<rect x="930" y="155" width="540" height="48" fill="#e6f3f5" stroke="#b7c9da" stroke-width="2"/>
+<text x="1172.5" y="186.32" fill="#142b49" font-family="Arial, sans-serif" font-size="21" font-weight="700">tasks</text>
+<text x="947" y="231.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">PK  id BIGINT NOT NULL AUTO_INCREMENT</text>
+<text x="947" y="260.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">title VARCHAR(200) NOT NULL</text>
+<text x="947" y="289.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">description TEXT NULL</text>
+<text x="947" y="318.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">status ENUM NOT NULL [default PENDING]</text>
+<text x="947" y="347.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">priority ENUM NOT NULL [default MEDIUM]</text>
+<text x="947" y="376.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">deadline DATE NULL</text>
+<text x="947" y="405.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">FK  assigned_to BIGINT NOT NULL</text>
+<text x="947" y="434.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">FK  assigned_by BIGINT NOT NULL</text>
+<text x="947" y="463.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">created_at DATETIME NOT NULL [default now]</text>
+<text x="947" y="492.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">updated_at DATETIME NOT NULL [auto-update]</text>
+<polyline points="720,245 930,245" fill="none" stroke="#52657b" stroke-width="2"/>
+<text x="735" y="228.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="700">1</text>
+<text x="880" y="228.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="700">0..*</text>
+<text x="777.0" y="269.64" fill="#142b49" font-family="Arial, sans-serif" font-size="17" font-weight="700">assigned_to</text>
+<polyline points="720,365 930,365" fill="none" stroke="#52657b" stroke-width="2"/>
+<text x="735" y="348.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="700">1</text>
+<text x="880" y="348.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="700">0..*</text>
+<text x="775.5" y="389.64" fill="#142b49" font-family="Arial, sans-serif" font-size="17" font-weight="700">assigned_by</text>
+<polyline points="185,225 65,225 65,390 185,390" fill="none" stroke="#52657b" stroke-width="2"/>
+<text x="47" y="191.72" fill="#142b49" font-family="Arial, sans-serif" font-size="16" font-weight="700">manager 0..1</text>
+<text x="47" y="422.72" fill="#142b49" font-family="Arial, sans-serif" font-size="16" font-weight="700">reports 0..*</text>
+<rect x="40" y="570" width="1430" height="440" fill="white" stroke="#b7c9da" stroke-width="2"/>
+<text x="65" y="611.24" fill="#142b49" font-family="Arial, sans-serif" font-size="22" font-weight="700">Constraints and implementation rules</text>
+<text x="65" y="656.56" fill="#52657b" font-family="Arial, sans-serif" font-size="18" font-weight="400">ENUM users.role: ADMIN | MANAGER | EMPLOYEE</text>
+<text x="65" y="692.56" fill="#52657b" font-family="Arial, sans-serif" font-size="18" font-weight="400">ENUM tasks.status: PENDING | IN_PROGRESS | DONE     tasks.priority: LOW | MEDIUM | HIGH</text>
+<text x="65" y="728.56" fill="#52657b" font-family="Arial, sans-serif" font-size="18" font-weight="400">CHECK: EMPLOYEE requires manager_id; ADMIN/MANAGER require manager_id IS NULL.</text>
+<text x="65" y="764.56" fill="#52657b" font-family="Arial, sans-serif" font-size="18" font-weight="400">Foreign keys reference users.id. No cascade deletion; referenced rows are restricted by the database.</text>
+<text x="65" y="800.56" fill="#52657b" font-family="Arial, sans-serif" font-size="18" font-weight="400">User DELETE sets active=false. Task DELETE physically removes the task row.</text>
+<text x="65" y="836.56" fill="#52657b" font-family="Arial, sans-serif" font-size="18" font-weight="400">Database checks existence; services additionally enforce manager/assignee roles, team scope and valid status transitions.</text>
+<text x="65" y="872.56" fill="#52657b" font-family="Arial, sans-serif" font-size="18" font-weight="400">Indexes — users: (manager_id, active), (role, active), unique email.</text>
+<text x="65" y="908.56" fill="#52657b" font-family="Arial, sans-serif" font-size="18" font-weight="400">Indexes — tasks: (assigned_to, status), (assigned_by, status), (status, priority).</text>
+<text x="65" y="944.56" fill="#52657b" font-family="Arial, sans-serif" font-size="18" font-weight="400">All tables use InnoDB and utf8mb4. Schema source: root schema.sql.</text>
+</svg>

@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1460 1180" role="img" aria-labelledby="title desc">
+<title id="title">UML Use Case Diagram</title><desc id="desc">Employee &amp; Task Management System | Associations show permitted actions; all data access is server-scoped.</desc>
+<rect width="1460" height="1180" fill="#f5f8fc"/>
+<text x="40" y="57.6" fill="#142b49" font-family="Arial, sans-serif" font-size="30" font-weight="700">UML Use Case Diagram</text>
+<text x="40" y="90.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">Employee &amp; Task Management System | Associations show permitted actions; all data access is server-scoped.</text>
+<rect x="260" y="125" width="1160" height="900" fill="#ffffff" stroke="#b7c9da" stroke-width="2"/>
+<text x="639.0078125" y="160.24" fill="#142b49" font-family="Arial, sans-serif" font-size="22" font-weight="700">Employee &amp; Task Management System</text>
+<circle cx="140" cy="193" r="13" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="140,206 140,248" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="115,221 165,221" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="118,275 140,248 162,275" fill="none" stroke="#142b49" stroke-width="2"/>
+<text x="64.5" y="300.64" fill="#142b49" font-family="Arial, sans-serif" font-size="17" font-weight="700">Authenticated user</text>
+<polyline points="165,221 285,221 285,320 1200,320" fill="none" stroke="#52657b" stroke-width="2"/>
+<polyline points="470,320 470,280" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="470.0" cy="235.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="403.5" y="239.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">Sign in / sign out</text>
+<polyline points="835,320 835,280" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="835.0" cy="235.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="784.0" y="227.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">View scoped</text>
+<text x="792.5" y="252.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">dashboard</text>
+<polyline points="1200,320 1200,280" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="1200.0" cy="235.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="1148.0" y="227.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">View task list</text>
+<text x="1156.5" y="252.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">and details</text>
+<text x="305" y="360.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">Shared behavior is inherited by the three role actors below.</text>
+<circle cx="140" cy="418" r="13" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="140,431 140,473" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="115,446 165,446" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="118,500 140,473 162,500" fill="none" stroke="#142b49" stroke-width="2"/>
+<text x="112.5" y="525.64" fill="#142b49" font-family="Arial, sans-serif" font-size="17" font-weight="700">ADMIN</text>
+<polyline points="110,447 55,447 55,315 140,315 140,310" fill="none" stroke="#52657b" stroke-width="2"/>
+<circle cx="140" cy="633" r="13" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="140,646 140,688" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="115,661 165,661" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="118,715 140,688 162,715" fill="none" stroke="#142b49" stroke-width="2"/>
+<text x="97.0" y="740.64" fill="#142b49" font-family="Arial, sans-serif" font-size="17" font-weight="700">MANAGER</text>
+<polyline points="110,662 55,662 55,315 140,315 140,310" fill="none" stroke="#52657b" stroke-width="2"/>
+<circle cx="140" cy="848" r="13" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="140,861 140,903" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="115,876 165,876" fill="none" stroke="#142b49" stroke-width="2"/>
+<polyline points="118,930 140,903 162,930" fill="none" stroke="#142b49" stroke-width="2"/>
+<text x="94.0" y="955.64" fill="#142b49" font-family="Arial, sans-serif" font-size="17" font-weight="700">EMPLOYEE</text>
+<polyline points="110,877 55,877 55,315 140,315 140,310" fill="none" stroke="#52657b" stroke-width="2"/>
+<polygon points="140,299 132,314 148,314" fill="white" stroke="#52657b" stroke-width="2"/>
+<polyline points="165,446 285,446 285,550 1200,550" fill="none" stroke="#52657b" stroke-width="2"/>
+<polyline points="470,550 470,495" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="470.0" cy="450.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="390.5" y="442.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">Create / view / edit /</text>
+<text x="421.0" y="467.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">delete users</text>
+<polyline points="835,550 835,495" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="835.0" cy="450.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="781.0" y="442.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">Create / edit /</text>
+<text x="774.5" y="467.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">delete any task</text>
+<polyline points="1200,550 1200,495" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="1200.0" cy="450.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="1129.0" y="442.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">Download all-task</text>
+<text x="1156.0" y="467.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">PDF report</text>
+<polyline points="165,661 285,661 285,765 1200,765" fill="none" stroke="#52657b" stroke-width="2"/>
+<polyline points="470,765 470,710" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="470.0" cy="665.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="409.5" y="657.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">Assign tasks to</text>
+<text x="431.0" y="682.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">own team</text>
+<polyline points="835,765 835,710" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="835.0" cy="665.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="761.5" y="657.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">Edit own-assigned</text>
+<text x="814.0" y="682.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">tasks</text>
+<polyline points="1200,765 1200,710" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="1200.0" cy="665.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="1106.5" y="657.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">Download current-team</text>
+<text x="1156.0" y="682.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">PDF report</text>
+<polyline points="165,876 285,876 285,980 1200,980" fill="none" stroke="#52657b" stroke-width="2"/>
+<polyline points="470,980 470,925" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="470.0" cy="880.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="431.5" y="872.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">View own</text>
+<text x="410.5" y="897.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">assigned tasks</text>
+<polyline points="835,980 835,925" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="835.0" cy="880.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="778.0" y="872.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">Start own task</text>
+<text x="716.5" y="897.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">PENDING to IN_PROGRESS</text>
+<polyline points="1200,980 1200,925" fill="none" stroke="#52657b" stroke-width="2"/>
+<ellipse cx="1200.0" cy="880.0" rx="160.0" ry="45.0" fill="white" stroke="#087f8c" stroke-width="2"/>
+<text x="1123.5" y="872.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">Complete own task</text>
+<text x="1096.5" y="897.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">IN_PROGRESS to DONE</text>
+<text x="300" y="995.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">Login validates email/password; protected actions require a valid JWT and active account.</text>
+<text x="40" y="1069.32" fill="#142b49" font-family="Arial, sans-serif" font-size="21" font-weight="700">Scope notes</text>
+<text x="40" y="1103.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">ADMIN views all tasks. MANAGER task list/dashboard include only tasks originally assigned by that manager.</text>
+<text x="40" y="1130.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">MANAGER PDF includes tasks of current team employees, including ADMIN-assigned tasks; report access does not grant edit rights.</text>
+<text x="40" y="1157.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">EMPLOYEE cannot access reports or change another employee&#x27;s task. User deletion is soft deletion (active=false).</text>
+</svg>

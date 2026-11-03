@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1470 1130" role="img" aria-labelledby="title desc">
+<title id="title">UML Class Diagram — Domain Model</title><desc id="desc">Actual JPA entity attributes and associations; service/controller infrastructure is documented separately.</desc>
+<rect width="1470" height="1130" fill="#f5f8fc"/>
+<text x="40" y="57.6" fill="#142b49" font-family="Arial, sans-serif" font-size="30" font-weight="700">UML Class Diagram — Domain Model</text>
+<text x="40" y="90.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">Actual JPA entity attributes and associations; service/controller infrastructure is documented separately.</text>
+<rect x="180" y="170" width="440" height="318" fill="white" stroke="#b7c9da" stroke-width="2"/>
+<rect x="180" y="170" width="440" height="70" fill="#e6f3f5" stroke="#b7c9da" stroke-width="2"/>
+<text x="364.5" y="192.8" fill="#087f8c" font-family="Arial, sans-serif" font-size="15" font-weight="400">&lt;&lt;entity&gt;&gt;</text>
+<text x="376.5" y="223.32" fill="#142b49" font-family="Arial, sans-serif" font-size="21" font-weight="700">User</text>
+<text x="197" y="268.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- id: Long</text>
+<text x="197" y="297.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- fullName: String</text>
+<text x="197" y="326.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- email: String</text>
+<text x="197" y="355.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- password: String {BCrypt hash}</text>
+<text x="197" y="384.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- role: Role</text>
+<text x="197" y="413.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- manager: User [0..1]</text>
+<text x="197" y="442.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- createdAt: LocalDateTime</text>
+<text x="197" y="471.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- active: boolean</text>
+<rect x="940" y="170" width="480" height="376" fill="white" stroke="#b7c9da" stroke-width="2"/>
+<rect x="940" y="170" width="480" height="70" fill="#e6f3f5" stroke="#b7c9da" stroke-width="2"/>
+<text x="1144.5" y="192.8" fill="#087f8c" font-family="Arial, sans-serif" font-size="15" font-weight="400">&lt;&lt;entity&gt;&gt;</text>
+<text x="1155.5078125" y="223.32" fill="#142b49" font-family="Arial, sans-serif" font-size="21" font-weight="700">Task</text>
+<text x="957" y="268.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- id: Long</text>
+<text x="957" y="297.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- title: String</text>
+<text x="957" y="326.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- description: String [0..1]</text>
+<text x="957" y="355.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- status: TaskStatus</text>
+<text x="957" y="384.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- priority: TaskPriority</text>
+<text x="957" y="413.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- deadline: LocalDate [0..1]</text>
+<text x="957" y="442.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- assignedTo: User [1]</text>
+<text x="957" y="471.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- assignedBy: User [1] {original}</text>
+<text x="957" y="500.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- createdAt: LocalDateTime</text>
+<text x="957" y="529.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">- updatedAt: LocalDateTime</text>
+<polyline points="620,280 940,280" fill="none" stroke="#52657b" stroke-width="2"/>
+<text x="630" y="258.64" fill="#142b49" font-family="Arial, sans-serif" font-size="17" font-weight="400">1</text>
+<text x="890" y="258.64" fill="#142b49" font-family="Arial, sans-serif" font-size="17" font-weight="400">0..*</text>
+<text x="730.0078125" y="300.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="700">assignedTo</text>
+<polyline points="620,410 940,410" fill="none" stroke="#52657b" stroke-width="2"/>
+<text x="630" y="388.64" fill="#142b49" font-family="Arial, sans-serif" font-size="17" font-weight="400">1</text>
+<text x="890" y="388.64" fill="#142b49" font-family="Arial, sans-serif" font-size="17" font-weight="400">0..*</text>
+<text x="729.5" y="430.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="700">assignedBy</text>
+<polyline points="180,255 85,255 85,460 180,460" fill="none" stroke="#52657b" stroke-width="2"/>
+<text x="93" y="237.72" fill="#142b49" font-family="Arial, sans-serif" font-size="16" font-weight="400">manager 0..1</text>
+<text x="90" y="488.72" fill="#142b49" font-family="Arial, sans-serif" font-size="16" font-weight="400">reports 0..*</text>
+<rect x="180" y="700" width="320" height="173" fill="white" stroke="#b7c9da" stroke-width="2"/>
+<rect x="180" y="700" width="320" height="70" fill="#e6f3f5" stroke="#b7c9da" stroke-width="2"/>
+<text x="281.5" y="722.8" fill="#087f8c" font-family="Arial, sans-serif" font-size="15" font-weight="400">&lt;&lt;enumeration&gt;&gt;</text>
+<text x="317.0" y="753.32" fill="#142b49" font-family="Arial, sans-serif" font-size="21" font-weight="700">Role</text>
+<text x="197" y="798.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">ADMIN</text>
+<text x="197" y="827.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">MANAGER</text>
+<text x="197" y="856.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">EMPLOYEE</text>
+<rect x="640" y="700" width="320" height="173" fill="white" stroke="#b7c9da" stroke-width="2"/>
+<rect x="640" y="700" width="320" height="70" fill="#e6f3f5" stroke="#b7c9da" stroke-width="2"/>
+<text x="741.5" y="722.8" fill="#087f8c" font-family="Arial, sans-serif" font-size="15" font-weight="400">&lt;&lt;enumeration&gt;&gt;</text>
+<text x="743.0078125" y="753.32" fill="#142b49" font-family="Arial, sans-serif" font-size="21" font-weight="700">TaskStatus</text>
+<text x="657" y="798.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">PENDING</text>
+<text x="657" y="827.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">IN_PROGRESS</text>
+<text x="657" y="856.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">DONE</text>
+<rect x="1100" y="700" width="320" height="173" fill="white" stroke="#b7c9da" stroke-width="2"/>
+<rect x="1100" y="700" width="320" height="70" fill="#e6f3f5" stroke="#b7c9da" stroke-width="2"/>
+<text x="1201.5" y="722.8" fill="#087f8c" font-family="Arial, sans-serif" font-size="15" font-weight="400">&lt;&lt;enumeration&gt;&gt;</text>
+<text x="1198.5078125" y="753.32" fill="#142b49" font-family="Arial, sans-serif" font-size="21" font-weight="700">TaskPriority</text>
+<text x="1117" y="798.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">LOW</text>
+<text x="1117" y="827.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">MEDIUM</text>
+<text x="1117" y="856.56" fill="#142b49" font-family="Arial, sans-serif" font-size="18" font-weight="400">HIGH</text>
+<polyline points="350,700 350,488" fill="none" stroke="#52657b" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="365" y="604.72" fill="#52657b" font-family="Arial, sans-serif" font-size="16" font-weight="400">type</text>
+<polyline points="800,700 800,650 1040,650 1040,546" fill="none" stroke="#52657b" stroke-width="2" stroke-dasharray="7 5"/>
+<polyline points="1260,700 1260,546" fill="none" stroke="#52657b" stroke-width="2" stroke-dasharray="7 5"/>
+<polyline points="343,688 350,700 357,688" fill="none" stroke="#52657b" stroke-width="2"/>
+<polyline points="793,688 800,700 807,688" fill="none" stroke="#52657b" stroke-width="2"/>
+<polyline points="1253,688 1260,700 1267,688" fill="none" stroke="#52657b" stroke-width="2"/>
+<text x="40" y="979.32" fill="#142b49" font-family="Arial, sans-serif" font-size="21" font-weight="700">Model notes</text>
+<text x="40" y="1015.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">Associations show multiplicities, not additional collection fields. JPA relations are unidirectional LAZY @ManyToOne.</text>
+<text x="40" y="1042.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">Only EMPLOYEE has a manager; the service validates that the referenced user is an active MANAGER.</text>
+<text x="40" y="1069.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">Task assignee must be an active EMPLOYEE at assignment time; original assigner must be ADMIN or MANAGER.</text>
+<text x="40" y="1096.64" fill="#52657b" font-family="Arial, sans-serif" font-size="17" font-weight="400">Historical roles may later change. DTOs prevent entities and password hashes from being returned by APIs.</text>
+</svg>

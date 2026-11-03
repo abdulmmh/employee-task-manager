@@ -1,0 +1,57 @@
+@startuml
+title Employee & Task Management System — Domain Class Model
+hide methods
+skinparam classAttributeIconSize 0
+class User <<entity>> {
+  - id: Long
+  - fullName: String
+  - email: String
+  - password: String
+  - role: Role
+  - manager: User [0..1]
+  - createdAt: LocalDateTime
+  - active: boolean
+}
+class Task <<entity>> {
+  - id: Long
+  - title: String
+  - description: String [0..1]
+  - status: TaskStatus
+  - priority: TaskPriority
+  - deadline: LocalDate [0..1]
+  - assignedTo: User [1]
+  - assignedBy: User [1]
+  - createdAt: LocalDateTime
+  - updatedAt: LocalDateTime
+}
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+}
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+User "reports 0..*" --> "manager 0..1" User : manager
+Task "0..*" --> "1" User : assignedTo
+Task "0..*" --> "1" User : assignedBy {original}
+User ..> Role : type
+Task ..> TaskStatus : type
+Task ..> TaskPriority : type
+note bottom of User
+password stores a BCrypt hash; APIs return DTOs, not entities.
+EMPLOYEE requires an active MANAGER at assignment/creation time.
+No reverse Java collection fields are implied by multiplicities.
+end note
+note bottom of Task
+Relations are LAZY @ManyToOne without cascade deletion.
+Original assignedBy is preserved; historical roles may change.
+end note
+@enduml
