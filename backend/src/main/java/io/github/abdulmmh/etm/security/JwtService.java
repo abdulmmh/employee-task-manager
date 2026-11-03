@@ -1,6 +1,6 @@
 package io.github.abdulmmh.etm.security;
 
-import io.github.abdulmmh.etm.user.User;
+import io.github.abdulmmh.etm.user.entity.User;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;

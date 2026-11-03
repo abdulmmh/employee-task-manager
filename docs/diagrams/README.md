@@ -35,7 +35,8 @@ Reverse multiplicities do not imply Java collection fields; all three references
 are unidirectional LAZY `@ManyToOne` relationships. No composition/cascade deletion
 is implied. Lombok-generated getters/setters are omitted.
 
-The application uses feature packages: controllers accept validated request DTOs,
+The application uses [feature packages with layer subpackages](../architecture.md):
+controllers accept validated request DTOs,
 services enforce ownership/team/status rules, and Spring Data repositories query
 the entities. Responses expose DTOs instead of entity/password data.
 `TaskReportService` projects report rows and delegates PDF rendering to
@@ -62,8 +63,8 @@ Task deletion physically removes the task. No cascade deletes are configured.
 
 - Use cases: `SecurityConfiguration`, controller `@PreAuthorize` annotations and
   ownership rules in `UserService`, `TaskService` and `TaskReportService`.
-- Classes: `backend/src/main/java/io/github/abdulmmh/etm/user/User.java`,
-  `task/Task.java` and their role/status/priority enum classes.
+- Classes: `backend/src/main/java/io/github/abdulmmh/etm/user/entity/User.java`,
+  `task/entity/Task.java` and their role/status/priority classes under `enums`.
 - Database: root `schema.sql` (two tables and three foreign keys).
 - Diagrams document the existing implementation; they add no feature or schema
   change. Application build/test commands are unnecessary for this docs-only change.

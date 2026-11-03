@@ -16,6 +16,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import io.github.abdulmmh.etm.auth.controller.AuthController;
+import io.github.abdulmmh.etm.auth.service.AuthService;
+import io.github.abdulmmh.etm.auth.service.DatabaseUserDetailsService;
 import io.github.abdulmmh.etm.security.DatabaseJwtAuthenticationConverter;
 import io.github.abdulmmh.etm.security.JwtConfiguration;
 import io.github.abdulmmh.etm.security.JwtProperties;
@@ -24,18 +27,18 @@ import io.github.abdulmmh.etm.security.SecurityConfiguration;
 import io.github.abdulmmh.etm.security.SecurityErrorHandler;
 import io.github.abdulmmh.etm.shared.error.ApiErrorWriter;
 import io.github.abdulmmh.etm.shared.error.GlobalExceptionHandler;
-import io.github.abdulmmh.etm.task.TaskRepository;
-import io.github.abdulmmh.etm.user.Role;
-import io.github.abdulmmh.etm.user.User;
-import io.github.abdulmmh.etm.user.UserController;
-import io.github.abdulmmh.etm.user.UserRepository;
-import io.github.abdulmmh.etm.user.UserService;
+import io.github.abdulmmh.etm.task.repository.TaskRepository;
+import io.github.abdulmmh.etm.user.controller.UserController;
+import io.github.abdulmmh.etm.user.entity.User;
+import io.github.abdulmmh.etm.user.enums.Role;
+import io.github.abdulmmh.etm.user.repository.UserRepository;
+import io.github.abdulmmh.etm.user.service.UserService;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.List;
-import org.mockito.ArgumentCaptor;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -60,11 +63,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = {AuthController.class, UserController.class,
-    io.github.abdulmmh.etm.task.TaskController.class,
-    io.github.abdulmmh.etm.dashboard.DashboardController.class,
-    io.github.abdulmmh.etm.report.TaskReportController.class,
-    io.github.abdulmmh.etm.team.TeamController.class,
-    io.github.abdulmmh.etm.health.HealthController.class}, properties = {
+    io.github.abdulmmh.etm.task.controller.TaskController.class,
+    io.github.abdulmmh.etm.dashboard.controller.DashboardController.class,
+    io.github.abdulmmh.etm.report.controller.TaskReportController.class,
+    io.github.abdulmmh.etm.team.controller.TeamController.class,
+    io.github.abdulmmh.etm.health.controller.HealthController.class}, properties = {
     "app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
     "app.jwt.issuer=employee-task-manager",
     "app.jwt.expiration-seconds=1800",
@@ -73,11 +76,11 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({SecurityConfiguration.class, JwtConfiguration.class, DatabaseUserDetailsService.class,
     DatabaseJwtAuthenticationConverter.class, JwtService.class, AuthService.class, UserService.class,
     GlobalExceptionHandler.class, SecurityErrorHandler.class, ApiErrorWriter.class,
-    io.github.abdulmmh.etm.task.TaskService.class,
-    io.github.abdulmmh.etm.dashboard.DashboardService.class,
-    io.github.abdulmmh.etm.report.TaskReportService.class,
-    io.github.abdulmmh.etm.report.TaskPdfRenderer.class,
-    io.github.abdulmmh.etm.team.TeamService.class})
+    io.github.abdulmmh.etm.task.service.TaskService.class,
+    io.github.abdulmmh.etm.dashboard.service.DashboardService.class,
+    io.github.abdulmmh.etm.report.service.TaskReportService.class,
+    io.github.abdulmmh.etm.report.renderer.TaskPdfRenderer.class,
+    io.github.abdulmmh.etm.team.service.TeamService.class})
 class AuthSecurityTest {
 
     @Autowired
@@ -105,7 +108,7 @@ class AuthSecurityTest {
     private TaskRepository taskRepository;
 
     @MockitoBean
-    private io.github.abdulmmh.etm.health.HealthService healthService;
+    private io.github.abdulmmh.etm.health.service.HealthService healthService;
 
     @Test
     void publicHealthReturnsOnlyUpWithoutAuthentication() throws Exception {
@@ -527,7 +530,7 @@ class AuthSecurityTest {
     @Test
     @WithMockUser(roles = "EMPLOYEE")
     void creationAlsoRequiresAdminAtServiceBoundary() {
-        var request = new io.github.abdulmmh.etm.user.CreateUserRequest(
+        var request = new io.github.abdulmmh.etm.user.dto.CreateUserRequest(
             "Forbidden Admin", "forbidden@demo.com", "Admin@123", Role.ADMIN, null);
 
         assertThatThrownBy(() -> userService.createUser(1L, request))
@@ -557,8 +560,8 @@ class AuthSecurityTest {
     @Test
     void adminCreatesTaskWithServerControlledStatusAndAssigner() throws Exception {
         allowUserWrites();
-        when(taskRepository.saveAndFlush(any(io.github.abdulmmh.etm.task.Task.class))).thenAnswer(call -> {
-            io.github.abdulmmh.etm.task.Task task = call.getArgument(0);
+        when(taskRepository.saveAndFlush(any(io.github.abdulmmh.etm.task.entity.Task.class))).thenAnswer(call -> {
+            io.github.abdulmmh.etm.task.entity.Task task = call.getArgument(0);
             ReflectionTestUtils.setField(task, "id", 25L);
             return task;
         });
@@ -593,7 +596,7 @@ class AuthSecurityTest {
     @Test
     void employeeCanStartOwnTaskOverHttp() throws Exception {
         fixtureTask();
-        when(taskRepository.saveAndFlush(any(io.github.abdulmmh.etm.task.Task.class)))
+        when(taskRepository.saveAndFlush(any(io.github.abdulmmh.etm.task.entity.Task.class)))
             .thenAnswer(call -> call.getArgument(0));
         mvc.perform(put("/api/tasks/20/status")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(employee))
@@ -633,7 +636,7 @@ class AuthSecurityTest {
         fixtureTask();
         mvc.perform(delete("/api/tasks/20").header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(admin)))
             .andExpect(status().isNoContent());
-        verify(taskRepository).delete(any(io.github.abdulmmh.etm.task.Task.class));
+        verify(taskRepository).delete(any(io.github.abdulmmh.etm.task.entity.Task.class));
     }
 
     @Test
@@ -643,8 +646,8 @@ class AuthSecurityTest {
             .andExpect(status().isBadRequest());
     }
 
-    private io.github.abdulmmh.etm.task.Task fixtureTask() {
-        var task = new io.github.abdulmmh.etm.task.Task();
+    private io.github.abdulmmh.etm.task.entity.Task fixtureTask() {
+        var task = new io.github.abdulmmh.etm.task.entity.Task();
         ReflectionTestUtils.setField(task, "id", 20L);
         task.setTitle("Test task");
         task.setAssignedBy(admin);

@@ -1,6 +1,6 @@
 package io.github.abdulmmh.etm.security;
 
-import io.github.abdulmmh.etm.auth.DatabaseUserDetailsService;
+import io.github.abdulmmh.etm.auth.service.DatabaseUserDetailsService;
 import jakarta.servlet.DispatcherType;
 import java.util.List;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

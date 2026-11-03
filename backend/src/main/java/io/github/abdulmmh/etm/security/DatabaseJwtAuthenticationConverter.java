@@ -1,6 +1,6 @@
 package io.github.abdulmmh.etm.security;
 
-import io.github.abdulmmh.etm.user.UserRepository;
+import io.github.abdulmmh.etm.user.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;

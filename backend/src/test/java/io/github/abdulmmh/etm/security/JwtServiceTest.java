@@ -3,8 +3,8 @@ package io.github.abdulmmh.etm.security;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.github.abdulmmh.etm.user.Role;
-import io.github.abdulmmh.etm.user.User;
+import io.github.abdulmmh.etm.user.entity.User;
+import io.github.abdulmmh.etm.user.enums.Role;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
