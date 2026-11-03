@@ -88,8 +88,27 @@ Aiven Free can power off for inactivity; no uptime guarantee. One power-off was
 observed during development and its precise cause/notification was not established.
 Render Free may cold-start. Monitoring cannot automatically power Aiven back on.
 Before submission and interview, check Running state, DNS, login, dashboard and
-PDF using actual deployed requests. A database-aware health endpoint is planned
-for monitoring; do not claim monitoring is configured before it is tested.
+PDF using actual deployed requests.
+
+`GET /api/health` is a public database-aware probe. It executes `SELECT 1` through
+the application's existing verified-TLS connection pool. A successful result
+returns HTTP200 with `{"status":"UP"}`; a failed JDBC check returns HTTP503 with
+`{"status":"DOWN"}`. Responses are `Cache-Control: no-store` and expose no database
+or user details. Other API routes retain their existing authentication rules.
+Do not send Authorization headers to this monitor.
+
+The probe sets a three-second JDBC query timeout. Pool acquisition has its own
+default Hikari timeout (30 seconds); it is not a three-second end-to-end guarantee.
+A database outage does not require intentionally powering off the live service
+to test alerts; unit and HTTP tests simulate the failure response.
+
+After deploying and checking the endpoint manually, create an UptimeRobot
+HTTP/website monitor for the actual backend URL ending in `/api/health`, using
+GET and the Free plan's five-minute interval. Expect HTTP200 and enable the
+verified email alert contact for down/up events. A second monitor may check the
+frontend root URL. Cold starts may cause temporary failures; inspect Render logs
+before interpreting an alert. This probe checks connectivity, not every business
+workflow, table, or permission. Monitor setup is pending until verified in UptimeRobot.
 
 ## References
 

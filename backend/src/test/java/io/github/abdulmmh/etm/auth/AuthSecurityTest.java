@@ -63,7 +63,8 @@ import org.springframework.test.web.servlet.MockMvc;
     io.github.abdulmmh.etm.task.TaskController.class,
     io.github.abdulmmh.etm.dashboard.DashboardController.class,
     io.github.abdulmmh.etm.report.TaskReportController.class,
-    io.github.abdulmmh.etm.team.TeamController.class}, properties = {
+    io.github.abdulmmh.etm.team.TeamController.class,
+    io.github.abdulmmh.etm.health.HealthController.class}, properties = {
     "app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
     "app.jwt.issuer=employee-task-manager",
     "app.jwt.expiration-seconds=1800",
@@ -102,6 +103,37 @@ class AuthSecurityTest {
 
     @MockitoBean
     private TaskRepository taskRepository;
+
+    @MockitoBean
+    private io.github.abdulmmh.etm.health.HealthService healthService;
+
+    @Test
+    void publicHealthReturnsOnlyUpWithoutAuthentication() throws Exception {
+        when(healthService.databaseAvailable()).thenReturn(true);
+        mvc.perform(get("/api/health"))
+            .andExpect(status().isOk())
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                .string("{\"status\":\"UP\"}"))
+            .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"));
+        verifyNoInteractions(userRepository, taskRepository);
+    }
+
+    @Test
+    void publicHealthReturns503WithoutDatabaseDetails() throws Exception {
+        when(healthService.databaseAvailable()).thenReturn(false);
+        mvc.perform(get("/api/health"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                .string("{\"status\":\"DOWN\"}"))
+            .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"));
+    }
+
+    @Test
+    void healthPublicPermissionDoesNotAllowPost() throws Exception {
+        mvc.perform(post("/api/health"))
+            .andExpect(status().isUnauthorized());
+        verifyNoInteractions(healthService);
+    }
 
     private User admin;
     private User employee;
