@@ -90,11 +90,12 @@ Render Free may cold-start. Monitoring cannot automatically power Aiven back on.
 Before submission and interview, check Running state, DNS, login, dashboard and
 PDF using actual deployed requests.
 
-`GET /api/health` is a public database-aware probe. It executes `SELECT 1` through
+`GET /api/health` and `HEAD /api/health` are public database-aware probes. They execute `SELECT 1` through
 the application's existing verified-TLS connection pool. A successful result
 returns HTTP200 with `{"status":"UP"}`; a failed JDBC check returns HTTP503 with
 `{"status":"DOWN"}`. Responses are `Cache-Control: no-store` and expose no database
-or user details. Other API routes retain their existing authentication rules.
+or user details. HEAD runs the same check and returns the same status/headers
+without a response body. Other API routes retain their existing authentication rules.
 Do not send Authorization headers to this monitor.
 
 The probe sets a three-second JDBC query timeout. Pool acquisition has its own
@@ -104,7 +105,8 @@ to test alerts; unit and HTTP tests simulate the failure response.
 
 After deploying and checking the endpoint manually, create an UptimeRobot
 HTTP/website monitor for the actual backend URL ending in `/api/health`, using
-GET and the Free plan's five-minute interval. Expect HTTP200 and enable the
+the Free plan's five-minute interval. The default HEAD method works; use GET if
+the plan allows selecting it. Expect HTTP200 and enable the
 verified email alert contact for down/up events. A second monitor may check the
 frontend root URL. Cold starts may cause temporary failures; inspect Render logs
 before interpreting an alert. This probe checks connectivity, not every business

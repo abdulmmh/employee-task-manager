@@ -56,6 +56,7 @@ public class SecurityConfiguration {
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/api/health").permitAll()
                 .requestMatchers("/api/users", "/api/users/**", "/api/auth/register").hasRole("ADMIN")
                 .requestMatchers("/api/reports/**", "/api/team/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers(HttpMethod.POST, "/api/tasks").hasAnyRole("ADMIN", "MANAGER")

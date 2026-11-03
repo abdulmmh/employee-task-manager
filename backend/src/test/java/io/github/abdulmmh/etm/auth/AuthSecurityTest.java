@@ -135,6 +135,27 @@ class AuthSecurityTest {
         verifyNoInteractions(healthService);
     }
 
+    @Test
+    void publicHeadHealthChecksDatabaseWithoutResponseBody() throws Exception {
+        when(healthService.databaseAvailable()).thenReturn(true);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head("/api/health"))
+            .andExpect(status().isOk())
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(""))
+            .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"));
+        verify(healthService).databaseAvailable();
+        verifyNoInteractions(userRepository, taskRepository);
+    }
+
+    @Test
+    void publicHeadHealthReportsDatabaseFailureWithoutResponseBody() throws Exception {
+        when(healthService.databaseAvailable()).thenReturn(false);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head("/api/health"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(""))
+            .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"));
+        verify(healthService).databaseAvailable();
+    }
+
     private User admin;
     private User employee;
 
