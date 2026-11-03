@@ -1,0 +1,20 @@
+[build]
+  base = "frontend"
+  command = "node scripts/configure-api.cjs && npm run build"
+  publish = "dist/employee-task-manager"
+
+[build.environment]
+  NODE_VERSION = "16.20.2"
+  NPM_VERSION = "8.19.4"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"

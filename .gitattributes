@@ -1,3 +1,4 @@
 * text=auto
 /backend/mvnw text eol=lf
 /backend/mvnw.cmd text eol=crlf
+/backend/docker-entrypoint.sh text eol=lf
