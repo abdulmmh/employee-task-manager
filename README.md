@@ -269,7 +269,7 @@ execution instructions for the 55 requests.
 - [Backend package architecture](docs/architecture.md)
 - [UML Use Case, Class and ER diagrams — SVG/PNG and editable sources](docs/diagrams/README.md)
 
-Screenshots and the final demo-video link will be added after media review.
+[View the application screenshots](docs/screenshots/README.md). The final demo-video link will be added after media review.
 
 ## Known limitations
 
