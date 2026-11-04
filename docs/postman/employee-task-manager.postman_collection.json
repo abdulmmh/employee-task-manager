@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Employee Task Manager",
-    "description": "Authentication and admin user management. Run logins, then paste tokens into collection variables. Create requests store returned user IDs for later edit/deactivate requests. Use unique test emails when repeating creation.",
+    "name": "Employee & Task Management System",
+    "description": "Full API verification collection: authentication, ADMIN user CRUD, scoped task lifecycle, dashboard, PDF reports, team options and health. Set baseUrl to http://localhost:8080 or https://employee-task-manager-api-07j1.onrender.com (no /api suffix). Use the Postman desktop app/Desktop Agent for localhost. Run the primary and additional role logins first; successful responses automatically populate collection token variables. Do not share/export populated tokens. Run user/task workflow folders in order: they create their own records and delete/soft-delete only those records. Fresh unique user emails are generated for each create workflow. Soft-deleted test users remain in history. Seed manager/employee IDs assume the original team relationships; restore demo relationships if manually changed. Clear token values before saving/exporting. Health GET/HEAD require no token. Database-outage tests are automated in the backend; do not power off the shared live database for a collection run.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -40,6 +40,10 @@
     {
       "key": "employee2Token",
       "value": ""
+    },
+    {
+      "key": "testRunId",
+      "value": ""
     }
   ],
   "item": [
@@ -58,7 +62,32 @@
           "raw": "{\"email\":\"admin@demo.com\",\"password\":\"Admin@123\"}"
         },
         "url": "{{baseUrl}}/api/auth/login"
-      }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.unset(\"adminToken\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+              "if (pm.response.code === 200) {",
+              "  const login = pm.response.json();",
+              "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"ADMIN\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
+              "  if (login.role === \"ADMIN\" && typeof login.token === \"string\") pm.collectionVariables.set(\"adminToken\", login.token);",
+              "}"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Manager login - expect 200",
@@ -75,7 +104,32 @@
           "raw": "{\"email\":\"manager@demo.com\",\"password\":\"Manager@123\"}"
         },
         "url": "{{baseUrl}}/api/auth/login"
-      }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.unset(\"managerToken\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+              "if (pm.response.code === 200) {",
+              "  const login = pm.response.json();",
+              "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"MANAGER\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
+              "  if (login.role === \"MANAGER\" && typeof login.token === \"string\") pm.collectionVariables.set(\"managerToken\", login.token);",
+              "}"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Employee login - expect 200",
@@ -92,7 +146,32 @@
           "raw": "{\"email\":\"emp1@demo.com\",\"password\":\"Emp@123\"}"
         },
         "url": "{{baseUrl}}/api/auth/login"
-      }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.unset(\"employeeToken\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+              "if (pm.response.code === 200) {",
+              "  const login = pm.response.json();",
+              "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"EMPLOYEE\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
+              "  if (login.role === \"EMPLOYEE\" && typeof login.token === \"string\") pm.collectionVariables.set(\"employeeToken\", login.token);",
+              "}"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Admin reads user - expect 200, no password",
@@ -105,7 +184,19 @@
           }
         ],
         "url": "{{baseUrl}}/api/users/3"
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"No credentials exposed\", function () { const u = pm.response.json(); pm.expect(u).not.to.have.property(\"password\"); pm.expect(u).not.to.have.property(\"passwordHash\"); });"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Manager denied user access - expect 403",
@@ -118,7 +209,18 @@
           }
         ],
         "url": "{{baseUrl}}/api/users/3"
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Employee denied user access - expect 403",
@@ -131,7 +233,18 @@
           }
         ],
         "url": "{{baseUrl}}/api/users/3"
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Missing token - expect 401",
@@ -139,7 +252,18 @@
         "method": "GET",
         "header": [],
         "url": "{{baseUrl}}/api/users/3"
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(401); });"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Invalid token - expect 401",
@@ -152,7 +276,18 @@
           }
         ],
         "url": "{{baseUrl}}/api/users/3"
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(401); });"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Wrong password - expect 401",
@@ -169,7 +304,18 @@
           "raw": "{\"email\":\"admin@demo.com\",\"password\":\"WrongPassword\"}"
         },
         "url": "{{baseUrl}}/api/auth/login"
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(401); });"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Invalid input - expect 400",
@@ -186,7 +332,18 @@
           "raw": "{\"email\":\"invalid-email\",\"password\":\"\"}"
         },
         "url": "{{baseUrl}}/api/auth/login"
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Admin reads absent user - expect 404",
@@ -199,7 +356,18 @@
           }
         ],
         "url": "{{baseUrl}}/api/users/999"
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Admin User Management",
@@ -215,7 +383,18 @@
               }
             ],
             "url": "{{baseUrl}}/api/users?page=0&size=10"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "List users page 2 - expect 200",
@@ -228,7 +407,18 @@
               }
             ],
             "url": "{{baseUrl}}/api/users?page=1&size=10"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Search active employees - expect 200",
@@ -241,7 +431,18 @@
               }
             ],
             "url": "{{baseUrl}}/api/users?search=employee&role=EMPLOYEE&active=true&page=0&size=10"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "List active managers - expect 200",
@@ -254,17 +455,39 @@
               }
             ],
             "url": "{{baseUrl}}/api/users?role=MANAGER&active=true&size=100"
-          }
-        },
-        {
-          "name": "Create employee - expect 201, repeat same email gets 409",
+          },
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) { pm.collectionVariables.set('createdUserId', pm.response.json().id); }"
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create unique employee - expect 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { pm.collectionVariables.set('createdUserId', pm.response.json().id); }",
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"testRunId\", Date.now().toString());",
+                  "pm.collectionVariables.unset(\"createdUserId\");"
                 ]
               }
             }
@@ -283,7 +506,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"fullName\":\"New Employee\",\"email\":\"new.employee@demo.com\",\"password\":\"Employee@123\",\"role\":\"EMPLOYEE\",\"managerId\":2}"
+              "raw": "{\"fullName\": \"New Employee\", \"email\": \"test.employee.{{testRunId}}@demo.com\", \"password\": \"Employee@123\", \"role\": \"EMPLOYEE\", \"managerId\": 2}"
             },
             "url": "{{baseUrl}}/api/users"
           }
@@ -296,7 +519,18 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) { pm.collectionVariables.set('createdAdminId', pm.response.json().id); }"
+                  "if (pm.response.code === 201) { pm.collectionVariables.set('createdAdminId', pm.response.json().id); }",
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"testRunId\")) pm.collectionVariables.set(\"testRunId\", Date.now().toString());",
+                  "pm.collectionVariables.unset(\"createdAdminId\");"
                 ]
               }
             }
@@ -315,7 +549,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"fullName\":\"Second Admin\",\"email\":\"admin2@demo.com\",\"password\":\"Admin2@123\",\"role\":\"ADMIN\",\"managerId\":null}"
+              "raw": "{\"fullName\": \"Second Admin\", \"email\": \"test.admin.{{testRunId}}@demo.com\", \"password\": \"Admin2@123\", \"role\": \"ADMIN\", \"managerId\": null}"
             },
             "url": "{{baseUrl}}/api/auth/register"
           }
@@ -336,13 +570,24 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"fullName\":\"Updated Employee\",\"email\":\"new.employee@demo.com\",\"password\":\"\",\"role\":\"EMPLOYEE\",\"managerId\":2,\"active\":true}"
+              "raw": "{\"fullName\": \"Updated Employee\", \"email\": \"test.employee.{{testRunId}}@demo.com\", \"password\": \"\", \"role\": \"EMPLOYEE\", \"managerId\": 2, \"active\": true}"
             },
             "url": "{{baseUrl}}/api/users/{{createdUserId}}"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
         },
         {
-          "name": "Deactivate created employee - expect 204",
+          "name": "Delete created employee - expect 204 (soft delete)",
           "request": {
             "method": "DELETE",
             "header": [
@@ -352,7 +597,18 @@
               }
             ],
             "url": "{{baseUrl}}/api/users/{{createdUserId}}"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Read deactivated record - expect 200, active false",
@@ -365,7 +621,19 @@
               }
             ],
             "url": "{{baseUrl}}/api/users/{{createdUserId}}"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Deleted account is inactive\", function () { pm.expect(pm.response.json().active).to.eql(false); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Employee cannot create admin - expect 403",
@@ -383,10 +651,136 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"fullName\":\"Forbidden Admin\",\"email\":\"forbidden@demo.com\",\"password\":\"Admin2@123\",\"role\":\"ADMIN\",\"managerId\":null}"
+              "raw": "{\"fullName\": \"Forbidden Admin\", \"email\": \"forbidden@demo.com\", \"password\": \"Admin2@123\", \"role\": \"ADMIN\", \"managerId\": null}"
             },
             "url": "{{baseUrl}}/api/auth/register"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete created additional admin - expect 204",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{createdAdminId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Run in order after ADMIN login. Creates a unique employee and additional admin, tests edit/delete/access, then soft-deletes those new accounts. Seed users are not modified. Repeated runs leave soft-deleted history and change totalUsers."
+    },
+    {
+      "name": "Additional role logins",
+      "description": "Run before cross-team task/report tests; stores manager2Token and employee2Token automatically.",
+      "item": [
+        {
+          "name": "Other manager login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"manager2@demo.com\", \"password\": \"Manager@123\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"manager2Token\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const login = pm.response.json();",
+                  "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"MANAGER\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
+                  "  if (login.role === \"MANAGER\" && typeof login.token === \"string\") pm.collectionVariables.set(\"manager2Token\", login.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Other employee login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"emp3@demo.com\", \"password\": \"Emp@123\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"employee2Token\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const login = pm.response.json();",
+                  "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"EMPLOYEE\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
+                  "  if (login.role === \"EMPLOYEE\" && typeof login.token === \"string\") pm.collectionVariables.set(\"employee2Token\", login.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -413,6 +807,31 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ADMIN combined assignee-role filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tasks?page=0&size=10&status=DONE&priority=HIGH&assignee=3&role=EMPLOYEE"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Combined filters narrow results\", function () { pm.response.json().content.forEach(function (t) { pm.expect(t.status).to.eql(\"DONE\"); pm.expect(t.priority).to.eql(\"HIGH\"); pm.expect(t.assignedTo).to.eql(3); }); });"
                 ]
               }
             }
@@ -484,7 +903,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });"
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Ownership scope cannot be widened\", function () { pm.expect(pm.response.json().content).to.eql([]); });"
                 ]
               }
             }
@@ -523,6 +943,15 @@
                 "exec": [
                   "pm.test(\"Expected status\", function () { pm.response.to.have.status(201); });",
                   "if (pm.response.code === 201) pm.collectionVariables.set('createdTaskId', pm.response.json().id);"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"createdTaskId\");"
                 ]
               }
             }
@@ -1063,6 +1492,154 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Team employee lookup",
+      "description": "Assignee dropdown support. MANAGER sees only active own-team EMPLOYEEs; ADMIN sees all active EMPLOYEEs. Responses contain id/name only. managerId query cannot override scope.",
+      "item": [
+        {
+          "name": "Manager own team",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/team/employees?page=0&size=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Minimal employee options\", function () { pm.response.json().content.forEach(function (u) { pm.expect(u).to.have.all.keys(\"id\", \"name\"); }); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin active employees",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/team/employees?search=Employee&page=0&size=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Minimal employee options\", function () { pm.response.json().content.forEach(function (u) { pm.expect(u).to.have.all.keys(\"id\", \"name\"); }); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Employee forbidden",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{employeeToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/team/employees"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/team/employees"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Health monitoring",
+      "description": "Read-only public probes. Keep Aiven Running for these expected-200 requests. HEAD returns no body; database failures return 503. No authentication header is used.",
+      "item": [
+        {
+          "name": "GET database health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Healthy minimal response\", function () { pm.expect(pm.response.json()).to.eql({status:\"UP\"}); pm.expect(pm.response.headers.get(\"Cache-Control\")).to.include(\"no-store\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HEAD database health",
+          "request": {
+            "method": "HEAD",
+            "header": [],
+            "url": "{{baseUrl}}/api/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"No body and no caching\", function () { pm.expect(pm.response.text()).to.eql(\"\"); pm.expect(pm.response.headers.get(\"Cache-Control\")).to.include(\"no-store\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
-  ]
+  ],
+  "auth": {
+    "type": "noauth"
+  }
 }
