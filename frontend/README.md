@@ -25,7 +25,7 @@ npm.cmd run build
 npm.cmd run test:ci
 ```
 
-The developer verified a **457.29 kB** production build and **32 passing tests** on
+The developer verified a **457.98 kB** production build and **39 passing tests** on
 November 4, 2026. ChromeHeadless tests require Chrome. No lint script is configured.
 
 ## Configuration
@@ -84,4 +84,13 @@ The recorded audit has **59 unresolved findings** (5 low, 30 moderate, 22 high,
 2 critical), including Angular runtime and build/install dependencies. Some fixes
 need framework/toolchain upgrades beyond the assignment's Angular 13 requirement.
 Do not use `npm audit fix --force` without a reviewed compatibility plan.
-Login does not yet have a dedicated slow-start timeout/retry flow.
+Login shows an accessible waiting message after 20 seconds and times out an
+unanswered attempt after 60 seconds. The pending subscription is cancelled, the
+button is re-enabled as Try again, and credentials remain available for manual
+retry. There is no automatic retry. Success, error and component destruction
+clean up the request/waiting timers. Wrong-password errors remain inline.
+
+Seven additional regression tests cover timing boundaries, success before/after
+the waiting threshold, 401 handling, cancellation and manual retry. All 39 frontend
+tests and the production build passed after this addition. Deployment and live
+smoke verification remain separate checks.

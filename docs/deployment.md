@@ -138,8 +138,8 @@ Successful local builds do not prove a free-tier deployment is ready.
 
 ## Verification checkpoint
 
-Latest developer-run checks: 161 backend tests, 32 frontend tests, all passing;
-production frontend build 457.29 kB (November 4, 2026). Backend package refactoring
+Latest developer-run checks: 161 backend tests, 39 frontend tests, all passing;
+production frontend build 457.98 kB (November 4, 2026). Backend package refactoring
 was followed by clean tests, database startup, login, list, PDF and health checks.
 Mocks do not prove real MySQL concurrency behavior. Keep live acceptance separate
 from unit/MVC tests and repeat a smoke check after the latest deployment.

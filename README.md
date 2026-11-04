@@ -44,6 +44,8 @@ The initial dataset contains 12 users and 24 tasks; manual CRUD changes these to
 - Searchable, paginated employee/manager pickers; task details; confirmation dialogs;
   success/error toasts; responsive navigation; PDF download and optional preview.
 - Stateless JWT login, BCrypt passwords, expiry logout, API interceptor and role guards.
+- Login shows waiting guidance after 20 seconds and stops an unanswered attempt
+  after 60 seconds, allowing manual retry; credential errors stay inline.
 
 Manager task lists/dashboard show tasks they originally assigned. Their PDF instead
 includes tasks of current team EMPLOYEEs from all assigners, including ADMIN.
@@ -229,8 +231,8 @@ record, 409 business conflict and 503 service unavailability.
 
 ## Verification and Postman
 
-Latest developer-run results: **161 backend tests pass**, **32 frontend tests pass**,
-and production frontend build **457.29 kB** (November 4, 2026). Local/database/live
+Latest developer-run results: **161 backend tests pass**, **39 frontend tests pass**,
+and production frontend build **457.98 kB** (November 4, 2026). Local/database/live
 role workflows, PDF reports and health monitoring were also checked during development.
 Any later deployment still needs its own smoke check.
 
@@ -273,5 +275,5 @@ Screenshots and the final demo-video link will be added after media review.
 - Report IDs are actual task IDs, so gaps are expected; generated times are UTC.
 - Free Render/Aiven availability is not guaranteed. UptimeRobot detects failures
   but cannot power Aiven on. A successful SELECT 1 health probe does not verify all
-  application workflows. Login currently waits for request completion; dedicated
-  slow-start timeout/retry UX is not implemented.
+  application workflows. A cold start may exceed the 60-second login timeout;
+  retry may be necessary even after the server begins starting.
