@@ -1,123 +1,87 @@
 # Employee & Task Manager — Angular frontend
 
-## Admin task role filter
+Angular 13.3.12, CLI 13.3.11, TypeScript 4.6.4, RxJS 7.5.7 and Bootstrap 5.3.8.
+Use Node **16.20.2** / npm **8.19.4**; `.nvmrc`, engines and `.npmrc` pin/check this
+toolchain. No global Angular CLI is needed.
 
-The ADMIN task page includes an **Assignee role** dropdown using the existing
-backend `role` query parameter. It refers to the assignee's current role, not the
-original assigner's role. Selecting a role combines it with the other task
-filters and resets pagination; Clear filters resets it with the rest. MANAGER
-and EMPLOYEE do not see the dropdown or send its parameter from this UI.
-Tasks are initially assigned to EMPLOYEEs only, so other role selections may be
-empty unless a historical task's assignee has subsequently changed role.
+Live frontend: https://etm-mahadi.netlify.app
+Full setup, credentials and API documentation: [root README](../README.md).
 
-Four HTTP/template regression tests cover combined filters, pagination reset,
-Clear filters and role-specific visibility. The developer verified the production
-build (457.29 kB) and all 32 frontend tests passing on November 4, 2026. Live UI
-verification and deployment of this addition remain separate checks.
+## Commands
 
-Angular 13.3.12, Angular CLI 13.3.11, TypeScript 4.6.4 and Bootstrap 5.3.8.
-Use Node 16.20.2/npm 8.19.4 (portable project tools or .nvmrc).
+Run from `frontend/` with the pinned Node/npm:
 
-## Local development
+```powershell
+npm.cmd ci
+npm.cmd start
+```
 
-From this directory, run `npm install`, then `npm run build` and `npm run test:ci`.
-The test command requires a Chrome installation for ChromeHeadless.
-After the lockfile is generated, use `npm ci` for reproducible clean installs.
-Run `npm start` and open http://localhost:4200. Keep the Spring backend running
-at http://localhost:8080. Scripts use the project's local Angular CLI.
+Open http://localhost:4200 with the backend running at http://localhost:8080.
+Use `npm ci` for a clean lockfile-based install; it is unnecessary before every run.
+On Unix use `npm` instead of `npm.cmd`.
 
-Current pages: login, role-based dashboard, ADMIN Users CRUD, role-scoped Tasks
-CRUD/status controls and ADMIN/MANAGER PDF download/preview. The user completed
-a clean Node 16 install. The current production build succeeds at 499.89 kB and
-all 18 frontend tests pass. Management-page live browser verification is pending.
+```powershell
+npm.cmd run build
+npm.cmd run test:ci
+```
 
-## Configuration and architecture
+The developer verified a **457.29 kB** production build and **32 passing tests** on
+November 4, 2026. ChromeHeadless tests require Chrome. No lint script is configured.
 
-`src/environments/environment.ts` sets the development public API URL.
-`environment.prod.ts` currently uses /api; replace it with the deployed backend
-URL before production deployment. Never put DB credentials or JWT signing secrets
-in Angular environment files. Browser bundles are public.
+## Configuration
 
-core/auth contains session lifecycle, API bearer-token interceptor and route guard.
-core/api contains models, backend services and common error messages. Feature pages
-use Reactive Forms and HttpClient; shared components supply icons and toasts.
-Global CSS builds the approved light/navy/teal responsive theme over Bootstrap.
-The role label is a display badge, not a role-switching control.
+- Development API: `src/environments/environment.ts` → `http://localhost:8080/api`.
+- Production: Netlify runs `node scripts/configure-api.cjs && npm run build`.
+  Set build variable `API_BASE_URL` to the public HTTPS backend URL ending in `/api`.
+  The script validates the URL and writes `environment.prod.ts` before compilation.
+- A plain local production build retains the committed `/api` placeholder unless
+  the configuration script is run first. For a deployed custom build, set
+  `API_BASE_URL`, run the script, then build; inspect generated changes before commit.
+- Database passwords and JWT signing keys belong only to the backend. Browser
+  bundles, including the API URL, are public. See [deployment](../docs/deployment.md).
 
-The access token is held in sessionStorage and cleared at expiry/logout/401.
-Client JWT decoding is for expiry/UI only; backend validation is authoritative.
-403 does not log the user out. Client route guards complement backend authorization.
-Only configured backend API requests receive the bearer token.
-Manager dashboard/tasks are own-assigned; PDF reports cover the current team,
-including administrator-assigned tasks.
+## Architecture and behavior
 
-## Legacy build compatibility
+`core/auth` handles session lifecycle, route guards and API bearer-token interception;
+`core/api` contains typed models, HTTP calls and error messages. Feature components
+use Reactive Forms; shared components provide dialogs, pagination, person pickers,
+icons, clock, toast notifications and PDF preview management.
 
-Use the project .npmrc engine checks and Node16/npm8. A scoped override
-selects node-releases2.0.44 for Browserslist's JSON release metadata, because newer
-releases require Node18. This intentionally substitutes an older metadata snapshot
-for the declared newer range; browser targets remain browser-based and newer Node
-release metadata may be absent. Verify lockfile updates with build/tests.
+The token is held in sessionStorage and cleared on expiry/logout/current-session
+401. Client JWT decoding is for UI/expiry only; backend verification is authoritative.
+403 preserves the session. Only configured backend API requests receive a token.
 
-src/bootstrap.scss includes used Bootstrap components/utilities instead of the
-entire precompiled stylesheet. Production JS/CSS minification stays enabled;
-critical-CSS inlining is disabled because the Angular13 Critters parser cannot
-reliably parse some Bootstrap5.3 selectors. The full external application CSS is
-still emitted. Initial bundle budget remains500KB warning/1MB error.
+- ADMIN Users: name/email search, role filtering, pagination, create/edit and Delete.
+  The UI lists active users; backend DELETE preserves records/history with active=false.
+- Tasks: scoped list/details, pagination, status/priority/assignee filters, assignment,
+  edit, EMPLOYEE status progression and ADMIN delete. Only PENDING assignees can change.
+- ADMIN **Assignee role** filter uses the existing backend `role` parameter (current
+  assignee role, not assigner). It combines with other filters and resets with Clear
+  filters. Other roles do not see/send it from this UI. Historical completed tasks
+  can have assignees whose roles later changed; other role results may otherwise be empty.
+- Employee options are active/current-team choices; historical/inactive task owners
+  remain queryable through backend filters. Manager/employee pickers are searchable
+  and paginated, close on select/outside/Escape and have a 10-second timeout/retry.
+- Manager task list/dashboard are own-assigned; PDF reports cover current team
+  employees, including tasks assigned by ADMIN. Required Download PDF and optional
+  preview are available to ADMIN/MANAGER; popup failures show guidance.
+- Responsive shell, validated forms, focus-trapped dialogs, top toasts and local
+  minute clock. The avatar menu shows account/logout; it is not a role switcher.
 
-The recorded audit has59 findings, including Angular runtime advisories and
-critical build/install dependencies. They are not resolved by reinstalling.
-Some proposed fixes require Angular major upgrades incompatible with the specified
-Angular13 stack. Do not claim this legacy stack has zero vulnerabilities or force
-major dependency overrides without compatibility review. Deployment remains
-pending; document these limitations for evaluation and revisit the stack before
-production use.
+## Legacy compatibility and limitations
 
-## Management/UI milestone (verification pending)
+A scoped Browserslist override selects `node-releases` 2.0.44 JSON metadata to
+avoid newer metadata packages requiring Node 18. This is an intentional older
+snapshot outside the newer declared range; verify any dependency/lockfile change.
+The project targets browsers, not latest Node versions.
 
-Users support name/email search, role filters, pagination, create/edit, manager
-selection, optional password reset and Delete confirmation. The UI lists only
-active users. DELETE soft-deletes the backend record and revokes login while
-preserving task history; inactive/restore management controls are not exposed.
-Tasks support status/priority/current-active-assignee filters, pagination, details,
-assignment/editing, employee start/done transitions and ADMIN delete confirmation.
-Assignee/manager option lists are searchable and paginated, not capped to the
-first result page. The minimal /api/team/employees endpoint scopes options on the
-backend. Assignee filters currently select active current-team employees; historical
-or inactive assignees' tasks remain visible in unfiltered lists and through API
-assignee filtering. Only pending tasks expose an editable assignee.
+`src/bootstrap.scss` includes used Bootstrap components/utilities. Production JS/CSS
+minification is enabled; critical-CSS inlining is disabled because the Angular 13
+parser cannot reliably parse some Bootstrap 5.3 selectors. Bundle budget remains
+500 kB warning / 1 MB error.
 
-Shared dialogs trap keyboard focus, close on Escape when idle, lock background
-scroll and restore focus. Toasts appear at top-right (top on mobile). The account
-avatar opens name/role/logout options. The dashboard displays local date/time,
-updated on minute boundaries. Preview PDF is optional alongside required Download
-PDF; it opens a tab directly from the user's click and loads the authorized blob.
-Popup blocking is handled with a message and download remains available. Object
-URLs are retained while previews are open and released when their tabs close.
-
-User-run management milestone: production build499.89KB, no engine/CSS/budget
-warnings and18 frontend tests passed. Backend team-lookup tests also pass within
-the152-test suite. Live management/browser checks and deployment remain pending.
-
-## Dropdown/filter correction (verification pending)
-
-Person selection now uses a single searchable popover with direct option buttons,
-selection/outside/Escape close, empty state and a10-second retry timeout. It no
-longer nests a native select inside a filter popover. Users/Tasks each have one
-Clear filters action that resets the complete filter set and pagination. Searchable
-options are a usability choice; mandatory Users name/email search remains.
-User-run verification: all 25 frontend tests pass, production build456.32KB
-with no budget/CSS/engine warnings. Live dropdown/filter behavior checks remain
-pending. The subsequent Delete/list/details refinements have not been applied yet.
-
-## User list and task detail refinement (verification pending)
-
-The Users table now has compact identity rows, explicit Actions heading and
-Edit/Delete buttons. It always requests active=true so deleted accounts disappear
-from the list. Backend soft deletion, historical records and administrator/team
-safeguards remain unchanged. The UI no longer exposes account-state/restore
-controls. Tasks have a visible View details action that opens the existing
-read-only description/assignee/assigner/status/priority/deadline dialog.
-Three regression tests cover active-list scope, delete reload and safeguard errors.
-The current refinement passed all28 frontend tests and a456.46KB production
-build with no build warnings. The user confirmed the requested live UI checks.
+The recorded audit has **59 unresolved findings** (5 low, 30 moderate, 22 high,
+2 critical), including Angular runtime and build/install dependencies. Some fixes
+need framework/toolchain upgrades beyond the assignment's Angular 13 requirement.
+Do not use `npm audit fix --force` without a reviewed compatibility plan.
+Login does not yet have a dedicated slow-start timeout/retry flow.

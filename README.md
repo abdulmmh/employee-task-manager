@@ -1,368 +1,277 @@
 # Employee & Task Management System
 
-A full-stack web application for managing employees and tasks with Admin, Manager,
-and Employee roles.
+A full-stack application for employee administration, team task assignment,
+progress tracking and PDF reporting. ADMIN, MANAGER and EMPLOYEE have different
+permissions enforced by the backend, with matching Angular navigation and guards.
 
-## Current status
+## Live application
 
-The backend starter and MySQL schema are in place. The demo dataset has been
-prepared and manually imported: 12 users and 24 tasks across three teams.
-JPA entities and environment-based database configuration are implemented. Local
-backend startup with the configured database connection and schema validation has
-been verified. Database-backed JWT login and an admin-only user detail endpoint
-are implemented; all 34 automated authentication/security tests pass. Live login
-and protected-user endpoint checks have been verified: admin access returns 200,
-manager/employee access returns 403, and missing authentication returns 401.
-Admin user creation, editing, pagination/search, soft deletion, and safeguards are
-implemented; all 72 user/auth/security tests passed in the user-run suite. Live
-user list/create/edit/password-preservation/deactivation/login checks also passed.
-Task CRUD, ownership-scoped pagination/filters and employee status transitions are
-implemented; the user-run suite passed all 117 tests. Live task creation/status
-and cross-team/delete permission checks also passed. Dashboard aggregates are
-implemented; the user-run suite passed all 127 tests and dashboard live checks
-passed for all three roles and missing authentication. PDF report code and its
-tests passed in the user-run 142-test suite. The generated four-page preview was
-visually checked for table layout, repeated headers and page numbers. Live report
-download and database scope checks remain pending.
-The Angular frontend remains to be built.
+| Resource | Link |
+| --- | --- |
+| Frontend — Netlify | https://etm-mahadi.netlify.app |
+| Backend — Render | https://employee-task-manager-api-07j1.onrender.com |
+| Database-aware health | https://employee-task-manager-api-07j1.onrender.com/api/health |
+| GitHub | https://github.com/abdulmmh/employee-task-manager |
 
-## Technology
+The database is Aiven MySQL 8.4. Free hosting can be slow after inactivity or
+temporarily unavailable. Check the health endpoint before the demonstration.
+The backend root is protected; open the frontend to use the application.
 
-- Backend: Java 17, Spring Boot 3.5.16, Spring Security, Spring Data JPA, Hibernate,
-  Jakarta Validation, and Lombok.
-- Database: MySQL 8.x.
-- Frontend (planned): Angular 13 and Bootstrap 5.
-- Build: Maven Wrapper, pinned to Apache Maven 3.9.12.
-
-## Repository structure
-
-```text
-backend/
-  .mvn/wrapper/        Maven Wrapper configuration
-  src/main/java/       Java application source
-  src/main/resources/  Application configuration
-  mvnw                 Unix Maven Wrapper
-  mvnw.cmd             Windows Maven Wrapper
-  pom.xml              Dependencies and build configuration
-schema.sql             MySQL table definitions and demo seed data
-```
-
-The Java base package is `io.github.abdulmmh.etm`. Feature packages will be added
-under it as the corresponding features are implemented.
-
-## Verify the backend starter
-
-Install a JDK 17 distribution and set `JAVA_HOME` to its root directory. A separate
-Maven installation is not required. The Wrapper downloads its pinned Maven
-distribution on first use; dependency downloads also require internet access.
-
-From PowerShell:
-
-```powershell
-cd backend
-.\mvnw.cmd -v
-.\mvnw.cmd compile
-```
-
-From a Unix shell:
-
-```sh
-cd backend
-sh ./mvnw -v
-sh ./mvnw compile
-```
-
-The version command should report Maven 3.9.12 and Java 17. A successful compile
-ends with `BUILD SUCCESS` and writes generated files to `backend/target/`.
-
-Compilation verifies dependency resolution and Java source. It does not verify
-database connectivity or application startup. Run authentication/security tests
-with `./mvnw test` (Windows: `.\mvnw.cmd test`). These use mocked repositories and
-do not connect to the cloud database.
-
-## Database setup
-
-Use MySQL 8.x and a schema-administration account to import the root `schema.sql`
-on a fresh database. The script includes ready-to-import BCrypt password hashes
-and creates `taskdb`, `users`, and `tasks`.
-It contains no database connection credentials or MySQL account provisioning.
-
-This is an initial installation script: existing tables are not dropped or
-overwritten. MySQL DDL commits independently, so stop on an import error before
-continuing. Successful import of the prepared script produces 12 users (one admin,
-three managers, eight employees) and 24 tasks across three teams.
-
-The backend database account is restricted to `SELECT`, `INSERT`, `UPDATE`, and
-`DELETE` on `taskdb.*`; schema setup uses a separate administrative account.
-
-## Backend runtime environment
-
-Export these variables into the shell that starts the backend, or configure them
-in your hosting service. `backend/.env.example` is a reference template; Spring
-Boot does not automatically load `.env` files.
-
-| Variable | Purpose | Default |
-| --- | --- | --- |
-| `PORT` | HTTP server port | `8080` |
-| `DB_HOST` | MySQL service hostname, without scheme or port | Required |
-| `DB_PORT` | MySQL service port | Required |
-| `DB_NAME` | Application database | `taskdb` |
-| `DB_USERNAME` | Restricted application database user | `etm_app` |
-| `DB_PASSWORD` | Password for that database user | Required |
-| `DB_TRUSTSTORE_URL` | File URI of the PKCS12 truststore containing the service CA | Required |
-| `DB_TRUSTSTORE_PASSWORD` | Truststore password | Required |
-| `JWT_SECRET` | Base64-encoded signing key containing at least 32 random bytes | Required |
-| `JWT_ISSUER` | Expected token issuer | `employee-task-manager` |
-| `JWT_EXPIRATION_SECONDS` | Access token lifetime | `1800` |
-| `CORS_ALLOWED_ORIGINS` | Comma-separated allowed frontend origins | `http://localhost:4200` |
-
-Download the CA certificate from your database provider. Create a dedicated
-truststore once using the JDK's `keytool` (replace the example paths):
-
-```sh
-keytool -importcert -alias aiven-ca -file /path/to/aiven-ca.pem -keystore /path/to/aiven-truststore.p12 -storetype PKCS12
-```
-
-The command prompts for a new truststore password and certificate confirmation.
-Set `DB_TRUSTSTORE_PASSWORD` to that password. `DB_PASSWORD` remains the password
-for the database account. Use an absolute file URI for `DB_TRUSTSTORE_URL`, such
-as `file:///D:/certificates/aiven-truststore.p12` on Windows or
-`file:///etc/secrets/aiven-truststore.p12` on Linux. Mount the truststore as a
-deployment secret file when deploying; it is excluded from Git.
-
-The Connector/J configuration uses `VERIFY_IDENTITY` to check both certificate
-trust and the database hostname. It uses the explicit PKCS12 store and disables
-fallback to the system truststore. Hibernate validates the existing schema with
-`ddl-auto=validate`; SQL initialization is disabled. Database-generated timestamps
-are mapped back to the entities, and entity relationships use lazy loading.
-
-After setting the variables, start the backend from its directory:
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Successful startup initializes the connection pool and JPA EntityManagerFactory,
-then logs `Started EtmApplication`. Set JWT_SECRET before startup. Persist the same
-signing secret in deployment settings; changing it invalidates existing tokens.
-The backend uses stateless Bearer authentication rather than a development form login.
-
-## Implemented API endpoints
-
-| Method | Path | Access |
-| --- | --- | --- |
-| POST | `/api/auth/login` | Public; JSON email/password; returns token, role, name |
-| POST | `/api/auth/register` | ADMIN; same creation service as POST /api/users |
-| GET | `/api/users` | ADMIN; paginated search/filter results |
-| GET | `/api/users/{id}` | ADMIN only; returns a user DTO without password/hash |
-| POST | `/api/users` | ADMIN; create an active user, returns 201 |
-| PUT | `/api/users/{id}` | ADMIN; edit details/role/team/active state, returns 200 |
-| DELETE | `/api/users/{id}` | ADMIN; soft deactivate, returns 204 |
-
-Send protected requests with `Authorization: Bearer <token>`. Tokens use HS256 and
-validate signature, issuer and expiration. Current database role and active state
-are checked for every authenticated request. The admin-only service also uses
-`@PreAuthorize`. Other required endpoints will be added with the remaining features.
-
-Errors contain `timestamp`, `status`, `message`, and `fieldErrors`. Invalid credentials
-or tokens return 401; insufficient permissions return 403; input errors return 400.
-Frontend logout will remove the token; server-side token revocation and refresh
-tokens are not implemented.
-
-## User management
-
-`GET /api/users` accepts zero-based `page` (default 0), `size` (default 10, maximum
-100), `search` (name/email substring, case-insensitive), `role`, and `active`.
-Without `active`, both active and inactive users are included. Results are ordered
-by ID and return `content`, `page`, `size`, `totalElements`, and `totalPages`.
-Search treats wildcard characters as literal text.
-
-Example creation body:
-
-```json
-{
-  "fullName": "New Employee",
-  "email": "new.employee@demo.com",
-  "password": "Employee@123",
-  "role": "EMPLOYEE",
-  "managerId": 2
-}
-```
-
-For ADMIN or MANAGER, `managerId` must be null or omitted. New users are active.
-For an edit, send `fullName`, `email`, `role`, `managerId`, and `active`.
-`password` is optional: omitted/null/blank preserves the previous hash; a supplied
-password is BCrypt-hashed. Passwords must fit BCrypt's 72-byte UTF-8 limit.
-Emails are normalized and remain unique even for inactive accounts.
-
-`DELETE` deactivates the account and preserves its record and tasks. An inactive
-account can be restored through an edit with `active=true` and a valid manager
-when applicable. Repeated deactivation returns 204. Managers must reassign their
-active team before deactivation or a role change. The last active ADMIN cannot be
-deactivated or demoted. These state conflicts return 409.
-
-Administrative writes lock the active-admin rows inside a transaction, recheck
-the caller's administrative state, and lock affected users/managers. Unique email
-constraints also protect concurrent creates. Lock contention conflicts return 409
-with a retry message. Actual concurrent MySQL behavior has not yet been verified
-by the mocked tests.
-
-Import `docs/postman/employee-task-manager.postman_collection.json` for manual
-authentication and CRUD checks. Set fresh role tokens in its collection variables;
-new-user requests store returned IDs for later edits. Use a unique test email or
-restore the existing account when repeating tests. Saved token values should not
-be committed in exported collections.
-
-## Demo application accounts
-
-These credentials are for the seeded application accounts. They are separate from
-the database connection credentials. Live login has been verified.
+## Demo accounts
 
 | Role | Email | Password |
 | --- | --- | --- |
 | ADMIN | `admin@demo.com` | `Admin@123` |
-| MANAGER | `manager@demo.com`, `manager2@demo.com`, `manager3@demo.com` | `Manager@123` |
-| EMPLOYEE | `emp1@demo.com` through `emp8@demo.com` | `Emp@123` |
+| MANAGER | `manager@demo.com` | `Manager@123` |
+| EMPLOYEE | `emp1@demo.com` | `Emp@123` |
+| EMPLOYEE | `emp2@demo.com` | `Emp@123` |
 
-The first manager has three employees, the second has two, and the third has three.
-The first manager assigned 11 tasks; the second and third assigned six each.
-One additional task was assigned by the admin. This supports pagination and checks
-that managers only see tasks they assigned.
+Additional seeded managers: `manager2@demo.com`, `manager3@demo.com` with
+`Manager@123`; employees `emp3@demo.com` through `emp8@demo.com` use `Emp@123`.
+These are demonstration application credentials, not database logins.
+The initial dataset contains 12 users and 24 tasks; manual CRUD changes these totals.
 
-## Business rules and assumptions
+## Features and access
 
-- Each employee belongs to one active manager. Admin and manager accounts do not
-  themselves have a manager. The database checks whether a manager reference is
-  present for the appropriate role; the service will validate the referenced
-  user's role and active state.
-- An admin may transfer an employee after their unfinished tasks have been
-  completed or reassigned within the original team. Completed task history is
-  preserved. This transfer policy is an implementation choice.
-- User deletion deactivates the account to preserve task history.
-- Role changes require all related unfinished tasks (assigned to or by the user)
-  to be resolved first. Completed history alone does not block a role change.
-- User/team/administrator rules are enforced in the service layer. Task ownership
-  and status-transition rules are implemented in TaskService.
-- Self-service password change is deferred until the required core features are
-  complete. Current password edits are administrative resets.
+| Role | Capabilities |
+| --- | --- |
+| ADMIN | Create/edit/delete users; assign roles/managers; view/create/edit/delete tasks; global dashboard; PDF of all tasks |
+| MANAGER | Assign tasks to own team; view/edit tasks originally assigned by that manager; team-size and own-assigned task statistics; current-team PDF |
+| EMPLOYEE | View own tasks and descriptions; advance own status PENDING → IN_PROGRESS → DONE; own task statistics |
 
-## Task API
+- Users: name/email search, pagination, role filter and validated create/edit forms.
+- Tasks: pagination, status/priority/assignee filters, plus ADMIN assignee-role filter.
+- Searchable, paginated employee/manager pickers; task details; confirmation dialogs;
+  success/error toasts; responsive navigation; PDF download and optional preview.
+- Stateless JWT login, BCrypt passwords, expiry logout, API interceptor and role guards.
 
-| Method | Path | Permission |
-| --- | --- | --- |
-| POST | `/api/tasks` | ADMIN or MANAGER; active EMPLOYEE assignee |
-| GET | `/api/tasks` | ADMIN all; MANAGER original assigner; EMPLOYEE assignee |
-| GET | `/api/tasks/{id}` | Same ownership scope |
-| PUT | `/api/tasks/{id}` | ADMIN or original MANAGER |
-| PUT | `/api/tasks/{id}/status` | Assigned EMPLOYEE only |
-| DELETE | `/api/tasks/{id}` | ADMIN only; physically deletes the task |
+Manager task lists/dashboard show tasks they originally assigned. Their PDF instead
+includes tasks of current team EMPLOYEEs from all assigners, including ADMIN.
+Report visibility does not grant edit permission. Inactive employees retaining a
+manager relationship are included; users whose current role changed from EMPLOYEE
+are excluded from that team's PDF. ADMIN retains visibility of all task history.
 
-Create/edit body:
+## Technology and structure
 
-```json
-{
-  "title": "Prepare monthly summary",
-  "description": "Summarize completed work",
-  "priority": "HIGH",
-  "deadline": "2026-11-04",
-  "assignedTo": 3
-}
+Java 17, Spring Boot 3.5.16, Spring Security JWT, Spring Data JPA/Hibernate,
+Jakarta Validation, Lombok, MySQL 8.x and PDFBox 3.0.8. Frontend: Angular 13.3.12,
+Angular CLI 13.3.11, TypeScript 4.6.4, RxJS 7.5.7 and Bootstrap 5.3.8.
+Build tools: Maven Wrapper 3.9.12 and Node 16.20.2/npm 8.19.4.
+
+```text
+backend/       Spring Boot source, tests, Maven Wrapper and Docker deployment
+frontend/      Angular source, tests and pinned npm lockfile
+docs/          Architecture, deployment, UML/ER diagrams and Postman collection
+schema.sql     Initial MySQL DDL and BCrypt-hashed demo seed data
+netlify.toml   Frontend build configuration and SPA fallback
 ```
 
-Title is required (maximum 200 characters); priority and assignedTo are required.
-Description is optional (maximum 10,000 characters); deadline is optional. Past
-calendar dates are allowed so existing overdue tasks can still be edited.
-The backend sets new status to PENDING and assignedBy to the authenticated user.
-Edit preserves status and original assignedBy. Managers assign only within their
-own team. ADMIN may assign new tasks across teams. Only PENDING tasks can be
-reassigned; a task originally assigned by a manager stays within that original
-manager's team when reassigned, including by ADMIN. These reassignment constraints
-are agreed design choices, not additional explicit assignment requirements.
+The backend uses feature packages with controller/service/repository/dto/entity/
+enums subpackages where needed. See [architecture](docs/architecture.md) and
+[UML Use Case, Class and ER diagrams](docs/diagrams/README.md).
 
-Status body is `{"status":"IN_PROGRESS"}` or `{"status":"DONE"}`. Only the assigned
-employee can advance PENDING → IN_PROGRESS → DONE. Skipping/reversing returns 409;
-repeating the current status is an idempotent 200. ADMIN/MANAGER cannot use this
-endpoint. Completed task metadata remains editable by its authorized assigner or
-ADMIN, but its assignee/status history is preserved.
+## Local setup
 
-List parameters: `page` (default 0), `size` (default 10, maximum 100), `status`,
-`priority`, `assignee` (positive user id), and `role` (assignee's current role).
-Results use the same PageResponse shape as users and sort by descending task id.
-Role refers to the assignee's current role, which may change after completed tasks.
-Every filter narrows the server-side ownership scope; it never widens access.
-Existing out-of-scope task ids return 403; unknown ids return 404. Responses contain
-participant ids/names but no email, password or user entity. Seed counts are a
-baseline; manual CRUD requests may change the database totals.
+Prerequisites: Git, JDK 17, Node 16.20.2 with npm 8.19.4, MySQL 8.x and a browser.
+Chrome is required for the configured frontend headless tests. Maven and a global
+Angular CLI do not need separate installation. Dependency downloads need internet.
 
-Task writes share UserService's active-admin row lock before reading current
-actor/team state. This serializes writes with user transfers/deactivation and
-prevents stale state from authorizing an assignment. It favors consistency over
-write throughput for this small demo. Mocked tests do not establish real MySQL
-concurrency behavior; live database verification is still required.
+```powershell
+git clone https://github.com/abdulmmh/employee-task-manager.git
+cd employee-task-manager
+```
 
-Use the Postman **Task management** folder in order. Set fresh role-token variables;
-its description identifies the seeded accounts. It stores createdTaskId and deletes
-only that newly created task. No schema re-import is needed.
+Set `JAVA_HOME` to your JDK 17 and select the pinned Node/npm in your terminal.
+Verify `java -version`, `node -v` and `npm.cmd -v` before installing dependencies.
 
-## Dashboard API
+### 1. Database
 
-`GET /api/dashboard/stats` requires authentication and uses the current database
-role of the authenticated account. It does not accept a user id or role override.
+Import [schema.sql](schema.sql) with a schema-administration account into a fresh
+MySQL server/database. It creates `taskdb`, `users`, `tasks` and demo data. This is
+an initial-install script; do not rerun it over existing tables or live data.
+MySQL DDL commits independently, so stop on any import error. The prepared seed
+hashes are ready to use; no hash-generation helper is required.
 
-| Role | Counts |
+Provision a separate backend DB account, such as `etm_app`, with only SELECT,
+INSERT, UPDATE and DELETE on `taskdb.*`; use the administrative account for DDL.
+Require encrypted connections. MySQL account credentials are separate from the
+application ADMIN role. The application validates the schema and never auto-seeds.
+
+### 2. Backend environment
+
+[backend/.env.example](backend/.env.example) is a reference. Spring Boot does not
+automatically read `.env`; export variables in the shell that starts the app.
+
+| Variable | Purpose / default |
 | --- | --- |
-| ADMIN | totalUsers (all accounts), activeUsers, all task counts |
-| MANAGER | teamSize (own active EMPLOYEEs), own-assigned task counts |
-| EMPLOYEE | own assigned task counts |
+| `PORT` | HTTP port; default `8080` |
+| `DB_HOST`, `DB_PORT` | Required MySQL host and port |
+| `DB_NAME` | Database; default `taskdb` |
+| `DB_USERNAME` | Restricted account; default `etm_app` |
+| `DB_PASSWORD` | Required database account password |
+| `DB_TRUSTSTORE_URL` | Required absolute file URI of the local PKCS12 CA truststore |
+| `DB_TRUSTSTORE_PASSWORD` | Required truststore password |
+| `JWT_SECRET` | Required Base64-encoded key with at least 32 random decoded bytes |
+| `JWT_ISSUER` | Default `employee-task-manager` |
+| `JWT_EXPIRATION_SECONDS` | Default `1800` (30 minutes) |
+| `CORS_ALLOWED_ORIGINS` | Exact comma-separated frontend origins; default `http://localhost:4200` |
+| `DB_CA_CERT_B64` | Docker deployment only: Base64 CA PEM; entrypoint generates the truststore |
+| `API_BASE_URL` | Frontend build only: public HTTPS backend URL ending in `/api` |
 
-All responses contain `role`, `totalTasks`, `completedTasks`, and `tasksByStatus`
-with numeric `pending`, `inProgress`, and `done` fields. Missing status groups are
-zero. Global user fields are omitted for MANAGER/EMPLOYEE; teamSize is omitted for
-ADMIN/EMPLOYEE. Historical tasks involving inactive employees still count;
-manager teamSize counts only active employees. Database COUNT/GROUP BY projections
-avoid loading all task entities. Each request reads counts inside a read-only
-transaction. Compare scoped totalTasks with the task-list totalElements for the
-same account; manual CRUD may change the initial seed totals.
+Download the database provider's CA certificate. Create a truststore with the JDK
+`keytool`, substituting your own absolute file paths:
 
-Use the Postman **Dashboard** folder for all three roles and missing-token checks.
-No schema import or migration is required for this feature.
+```powershell
+keytool -importcert -alias aiven-ca -file 'D:\certificates\aiven-ca.pem' -keystore 'D:\certificates\aiven-truststore.p12' -storetype PKCS12
+```
 
-## PDF report API
+Verify the certificate before accepting it. The command asks for the truststore
+password. Set `DB_TRUSTSTORE_URL` to, for example,
+`file:///D:/certificates/aiven-truststore.p12`. The connection uses VERIFY_IDENTITY
+to validate the CA and hostname, without falling back to the system truststore.
+Ensure the database host matches its certificate and use its real connection port.
 
-`GET /api/reports/tasks/pdf` returns a PDF attachment named `tasks-report.pdf`.
-ADMIN receives all tasks. MANAGER receives tasks belonging to the current team's
-EMPLOYEEs, regardless of who assigned them, including ADMIN-assigned tasks.
-Employees with a current manager relationship remain in that team's report even
-when inactive; tasks of users whose current role is no longer EMPLOYEE are not
-part of a manager's team report. ADMIN still sees all task history.
-EMPLOYEE requests return 403; missing/invalid authentication returns 401.
-The backend derives report scope from the current authenticated account; request
-parameters cannot override the manager or role. Responses use application/pdf,
-Content-Disposition attachment, and Cache-Control no-store. Errors remain JSON.
+Generate a local signing key without printing it:
 
-The team report scope deliberately differs from the manager task list/dashboard,
-which show only tasks the manager originally assigned. Report access does not
-grant edit permission. After an employee transfer, their tasks appear in the new
-manager's team report. Previous managers retain their original assignment history
-through the task list. This is the agreed interpretation of 'own team only'; the
-specification does not define historical team membership reporting.
+```powershell
+$etmJwtBytes = New-Object byte[] 32
+$etmJwtRandom = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$etmJwtRandom.GetBytes($etmJwtBytes)
+$env:JWT_SECRET = [Convert]::ToBase64String($etmJwtBytes)
+$etmJwtRandom.Dispose()
+```
 
-The landscape A4 report contains scope, generated-by name, UTC timestamp, task
-count and columns ID, Title, Assignee, Assigned by, Status, Priority and Deadline.
-Long cells wrap and continue across pages, column headers repeat, and pages have
-numbered footers. Empty reports explicitly state that no tasks were found.
-Apache PDFBox 3.0.8 is pinned in Maven. The current English report uses standard
-PDF fonts: unsupported glyphs, including Bengali/emoji, are replaced with '?'.
-It does not currently implement multilingual font embedding/shaping.
+Keep the deployed signing key stable between restarts; rotation invalidates tokens.
+After exporting all required DB variables and passwords, run:
 
-Repository queries project only report columns, avoiding lazy entity traversal
-and additional per-row queries. Report rows and the PDF are held in memory, which
-is suitable for this demo dataset; large production exports would need bounded
-batching and an asynchronous/streaming export design.
+```powershell
+cd backend
+.\mvnw.cmd -v
+.\mvnw.cmd spring-boot:run
+```
 
-Import the Postman **PDF reports** folder. Save successful responses as PDF and
-open them to verify scope, columns, wrapping and page numbers. In the unchanged
-seed, manager 1's report includes the ADMIN-assigned task for employee 4, while
-that task is excluded from manager 1's task list. Manual changes may alter counts.
-The user-run renderer tests create `backend/target/report-preview.pdf` for visual
-review; target and personal notes are ignored by Git. No schema import is needed.
+Expect Java 17, Maven 3.9.12 and `Started EtmApplication` on port 8080. Local health:
+`http://localhost:8080/api/health`. On Unix use `sh ./mvnw` instead of `mvnw.cmd`.
+
+### 3. Frontend
+
+Open a second terminal at the repository root with Node 16.20.2/npm 8.19.4 selected:
+
+```powershell
+cd frontend
+npm.cmd ci
+npm.cmd start
+```
+
+Open `http://localhost:4200`. Development API URL is `http://localhost:8080/api`.
+Keep the backend running. The npm scripts use the project's local Angular CLI.
+For production API configuration see [deployment](docs/deployment.md).
+
+## API reference
+
+Protected requests require `Authorization: Bearer <token>`. Request DTOs are
+validated; responses never expose persistence entities or password hashes.
+
+| Method | Path | Access / purpose |
+| --- | --- | --- |
+| POST | `/api/auth/login` | Public email/password → `{token, role, name}` |
+| POST | `/api/auth/register` | ADMIN user creation alias |
+| GET | `/api/users` | ADMIN paginated users/search/filter |
+| GET | `/api/users/{id}` | ADMIN user details |
+| POST | `/api/users` | ADMIN create; 201 |
+| PUT | `/api/users/{id}` | ADMIN edit; 200 |
+| DELETE | `/api/users/{id}` | ADMIN soft delete; 204 |
+| GET | `/api/tasks` | Role-scoped paginated task list |
+| GET | `/api/tasks/{id}` | Same ownership scope |
+| POST | `/api/tasks` | ADMIN/MANAGER assign; 201 |
+| PUT | `/api/tasks/{id}` | ADMIN or original MANAGER edit |
+| PUT | `/api/tasks/{id}/status` | Assigned EMPLOYEE status update |
+| DELETE | `/api/tasks/{id}` | ADMIN physical delete; 204 |
+| GET | `/api/team/employees` | ADMIN all active EMPLOYEEs; MANAGER own active team options |
+| GET | `/api/dashboard/stats` | Authenticated role-specific counts |
+| GET | `/api/reports/tasks/pdf` | ADMIN all tasks; MANAGER current-team tasks; PDF attachment |
+| GET / HEAD | `/api/health` | Public DB probe: 200 UP / 503 DOWN; HEAD has no body |
+
+Pagination is zero-based: `page=0&size=10`, maximum size 100. Page responses contain
+`content`, `page`, `size`, `totalElements`, `totalPages`. Users accept `search`
+(name/email), `role`, `active`. Tasks accept `status`, `priority`, `assignee`,
+`role` (assignee's current role). Filters only narrow the authenticated scope.
+Team options support name `search`. The UI shows active users and active assignee
+choices; historical/inactive task assignees remain queryable through the API.
+
+Create user: `fullName`, `email`, `password`, `role`, `managerId` (EMPLOYEE only).
+Update also requires `active`; omitted/null/blank edit password preserves its hash.
+Create/edit task: `title`, `description`, `priority`, `deadline` (ISO date),
+`assignedTo` (employee ID). New status is PENDING and assigner is server-derived.
+Status requests use `{"status":"IN_PROGRESS"}` then `{"status":"DONE"}`.
+
+Errors contain `timestamp`, `status`, `message`, `fieldErrors`: 400 invalid input,
+401 missing/invalid authentication or credentials, 403 forbidden access, 404 missing
+record, 409 business conflict and 503 service unavailability.
+
+## Business safeguards
+
+- User DELETE sets `active=false`, revoking future authenticated access while
+  preserving task history. UI removes the account from its active list. Backend
+  administrative updates can restore eligible accounts; the UI has no restore control.
+- The final active ADMIN cannot be deleted/demoted. Managers must reassign their
+  active employees before deactivation/demotion. Additional ADMINs are created only
+  by an existing ADMIN; no public registration exists.
+- Unfinished assigned-to/by tasks block role changes. An employee transfer requires
+  unfinished assignments resolved. Completed history is retained.
+- Only PENDING tasks can be reassigned. Original assignedBy is preserved; a task
+  originating from a manager remains within that manager's team when reassigned.
+- Only the assigned EMPLOYEE advances status; skipping/reversing returns 409,
+  repeating the current status is idempotent. ADMIN/MANAGER cannot update status.
+- Current DB role/active state is checked for each authenticated request. Password
+  resets do not revoke an already-issued JWT; access tokens expire after 30 minutes
+  by default. There is no refresh-token/server-side logout revocation mechanism.
+
+## Verification and Postman
+
+Latest developer-run results: **161 backend tests pass**, **32 frontend tests pass**,
+and production frontend build **457.29 kB** (November 4, 2026). Local/database/live
+role workflows, PDF reports and health monitoring were also checked during development.
+Any later deployment still needs its own smoke check.
+
+```powershell
+# From backend/ with Java 17
+.\mvnw.cmd clean test
+
+# From frontend/ with Node 16.20.2/npm 8.19.4
+npm.cmd run build
+npm.cmd run test:ci
+```
+
+Backend tests use mocks/MVC slices and do not establish real MySQL concurrency
+behavior or production availability. Package changes require a clean build to
+remove stale compiled classes. Administrative/task writes share a database lock
+to serialize business-rule checks; this demo prioritizes consistency over throughput.
+
+Import [Postman collection](docs/postman/employee-task-manager.postman_collection.json).
+Set collection `baseUrl` to `http://localhost:8080` or the deployed backend origin
+(without `/api`). Run the role logins, then place fresh tokens in their collection
+variables. For localhost use Postman desktop app/Desktop Agent. Use unique test
+emails and follow the collection's creation/status/deletion order; manual tests
+change data. Do not export real tokens into committed collections.
+
+## Deployment, diagrams and media
+
+- [Render, Netlify, TLS and monitoring setup](docs/deployment.md)
+- [Backend package architecture](docs/architecture.md)
+- [UML Use Case, Class and ER diagrams — SVG/PNG and editable sources](docs/diagrams/README.md)
+
+Screenshots and the final demo-video link will be added after media review.
+
+## Known limitations
+
+- The required Angular 13/Node 16 stack is legacy. The recorded npm audit has 59
+  findings (5 low, 30 moderate, 22 high, 2 critical), including runtime and build
+  dependencies; these are unresolved. A working build is not a security clearance.
+- PDF standard fonts support English/WinAnsi; unsupported Bengali/emoji glyphs are
+  replaced with `?`. Reports are generated in memory for the small demo dataset.
+- Report IDs are actual task IDs, so gaps are expected; generated times are UTC.
+- Free Render/Aiven availability is not guaranteed. UptimeRobot detects failures
+  but cannot power Aiven on. A successful SELECT 1 health probe does not verify all
+  application workflows. Login currently waits for request completion; dedicated
+  slow-start timeout/retry UX is not implemented.

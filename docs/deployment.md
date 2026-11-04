@@ -1,7 +1,17 @@
 # Deployment guide
 
-Deployment is pending. No live URL below is claimed to exist. The developer runs
-tests/builds, commits/pushes and performs all account/deployment actions manually.
+The application has been deployed to Netlify, Render (Docker) and Aiven MySQL.
+These instructions describe that setup and how to reproduce it. Account secrets,
+deployments and repository visibility are managed by the developer.
+
+| Resource | Address |
+| --- | --- |
+| Frontend | https://etm-mahadi.netlify.app |
+| Backend | https://employee-task-manager-api-07j1.onrender.com |
+| Backend health | https://employee-task-manager-api-07j1.onrender.com/api/health |
+
+The developer confirmed live role workflows, PDF reports and UptimeRobot frontend/
+backend monitors during setup. A new deployment still needs smoke verification.
 
 ## 1. Confirm the local release
 
@@ -51,8 +61,9 @@ generator and paste the result only into the hosting secret setting. Keep it
 unchanged across redeploys; rotation invalidates existing tokens.
 
 Deploy and inspect startup logs. Aiven must be reachable during Hibernate schema
-validation. Free-tier cold start/memory limits require a real deployed check;
-the Docker image has not yet been built/run in this project. The build stage
+validation. The Docker image was built and started successfully on Render with
+MySQL connectivity and schema validation. Initial startup took about 136 seconds;
+future cold starts can vary. The build stage
 downloads Maven dependencies; the runtime image contains only JRE17/app/entrypoint.
 
 ## 3. Netlify frontend
@@ -110,7 +121,9 @@ the plan allows selecting it. Expect HTTP200 and enable the
 verified email alert contact for down/up events. A second monitor may check the
 frontend root URL. Cold starts may cause temporary failures; inspect Render logs
 before interpreting an alert. This probe checks connectivity, not every business
-workflow, table, or permission. Monitor setup is pending until verified in UptimeRobot.
+workflow, table, or permission. The developer confirmed both UptimeRobot monitors
+working after HEAD support was deployed. Inspect the incident error/status when a
+monitor disagrees with a browser request instead of assuming database failure.
 
 ## References
 
@@ -125,13 +138,20 @@ Successful local builds do not prove a free-tier deployment is ready.
 
 ## Verification checkpoint
 
-Before deployment configuration was added, the developer verified 152 backend
-tests and 28 frontend tests with no failures. The latest production frontend
-build was 456.46 kB. These results do not validate the Docker image or Netlify's
-build-time API configuration; both must be checked during the first deployment.
+Latest developer-run checks: 161 backend tests, 32 frontend tests, all passing;
+production frontend build 457.29 kB (November 4, 2026). Backend package refactoring
+was followed by clean tests, database startup, login, list, PDF and health checks.
+Mocks do not prove real MySQL concurrency behavior. Keep live acceptance separate
+from unit/MVC tests and repeat a smoke check after the latest deployment.
 
-For the first Render deployment, set CORS_ALLOWED_ORIGINS to
-`http://localhost:4200`. Once Netlify provides the final frontend origin, replace
-this value with that origin (or an explicit comma-separated list if local
-testing is still needed). Never use a wildcard. A 401 response from a protected
-backend URL without a token is expected; it is not a successful login check.
+For this deployment, Netlify's public build variable is:
+
+```text
+API_BASE_URL=https://employee-task-manager-api-07j1.onrender.com/api
+```
+
+Render's CORS_ALLOWED_ORIGINS must include exactly `https://etm-mahadi.netlify.app`
+(without a trailing slash). Optionally include `http://localhost:4200` explicitly
+as a comma-separated second origin for local testing. Do not use a wildcard.
+A 401 on a protected URL without a token is expected, but it does not establish
+that login, database queries or PDF workflows work.
