@@ -1,5 +1,20 @@
 # Employee & Task Manager — Angular frontend
 
+## Admin task role filter
+
+The ADMIN task page includes an **Assignee role** dropdown using the existing
+backend `role` query parameter. It refers to the assignee's current role, not the
+original assigner's role. Selecting a role combines it with the other task
+filters and resets pagination; Clear filters resets it with the rest. MANAGER
+and EMPLOYEE do not see the dropdown or send its parameter from this UI.
+Tasks are initially assigned to EMPLOYEEs only, so other role selections may be
+empty unless a historical task's assignee has subsequently changed role.
+
+Four HTTP/template regression tests cover combined filters, pagination reset,
+Clear filters and role-specific visibility. The developer verified the production
+build (457.29 kB) and all 32 frontend tests passing on November 4, 2026. Live UI
+verification and deployment of this addition remain separate checks.
+
 Angular 13.3.12, Angular CLI 13.3.11, TypeScript 4.6.4 and Bootstrap 5.3.8.
 Use Node 16.20.2/npm 8.19.4 (portable project tools or .nvmrc).
 

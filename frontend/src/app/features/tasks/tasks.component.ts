@@ -3,7 +3,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, Subscription, finalize, takeUntil } from 'rxjs';
 import { WorkspaceApiService } from '../../core/api/workspace-api.service';
-import { PersonOption, Query, Task, TaskInput, TaskPriority, TaskStatus } from '../../core/api/models';
+import { PersonOption, Query, Role, Task, TaskInput, TaskPriority, TaskStatus } from '../../core/api/models';
 import { errorMessage } from '../../core/api/error-message';
 import { AuthService } from '../../core/auth/auth.service';
 import { ToastService } from '../../shared/toast/toast.service';
@@ -11,9 +11,10 @@ import { applyServerErrors, fieldError } from '../../shared/form-errors';
 
 @Component({ selector: 'app-tasks', templateUrl: './tasks.component.html' })
 export class TasksComponent implements OnInit, OnDestroy {
-  readonly filters = this.fb.group({ status: [''], priority: [''] });
+  readonly filters = this.fb.group({ status: [''], priority: [''], role: [''] });
   readonly form = this.fb.group({ title: ['', [Validators.required, Validators.maxLength(200)]], description: ['', Validators.maxLength(10000)], priority: ['MEDIUM', Validators.required], deadline: [''], assignedTo: [null, Validators.required] });
   readonly statuses: TaskStatus[] = ['PENDING', 'IN_PROGRESS', 'DONE']; readonly priorities: TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
+  readonly roles: Role[] = ['ADMIN', 'MANAGER', 'EMPLOYEE'];
   tasks: Task[] = []; page = 0; readonly size = 10; total = 0; loading = false; error = ''; busy = false;
   assigneeFilter: PersonOption | null = null; editing?: Task; editorOpen = false; formError = ''; selectedName = ''; confirming?: Task;
   details?: Task; statusBusyId?: number;
@@ -32,15 +33,16 @@ export class TasksComponent implements OnInit, OnDestroy {
   }
   filter(): void { this.page = 0; this.load(); }
   selectFilter(option: PersonOption | null): void { this.assigneeFilter = option; this.filter(); }
-  get hasFilters(): boolean { return !!this.assigneeFilter || !!this.filters.get('status')!.value || !!this.filters.get('priority')!.value; }
-  clearFilters(): void { this.filters.reset({ status: '', priority: '' }); this.assigneeFilter = null; this.filter(); }
+  get hasFilters(): boolean { return !!this.assigneeFilter || !!this.filters.get('status')!.value || !!this.filters.get('priority')!.value || (this.admin && !!this.filters.get('role')!.value); }
+  clearFilters(): void { this.filters.reset({ status: '', priority: '', role: '' }); this.assigneeFilter = null; this.filter(); }
   changePage(page: number): void { this.page = page; this.load(); }
   load(): void {
     this.listRequest?.unsubscribe(); this.loading = true; this.error = '';
-    const values = this.filters.value as { status: string; priority: string };
+    const values = this.filters.value as { status: string; priority: string; role: string };
     const query: Query = { page: this.page, size: this.size };
     if (values.status) query['status'] = values.status;
     if (values.priority) query['priority'] = values.priority;
+    if (this.admin && values.role) query['role'] = values.role;
     if (this.assigneeFilter) query['assignee'] = this.assigneeFilter.id;
     this.listRequest = this.api.tasks(query).pipe(finalize(() => this.loading = false)).subscribe({
       next: result => { this.tasks = result.content; this.total = result.totalElements; if (!this.tasks.length && this.page > 0) { this.page--; this.load(); } },
