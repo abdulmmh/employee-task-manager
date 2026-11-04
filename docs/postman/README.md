@@ -12,12 +12,20 @@ generated record IDs are empty; only published demo application passwords are in
    `https://employee-task-manager-api-07j1.onrender.com` with no trailing `/api`.
 3. For localhost use Postman's desktop app or Desktop Agent. Keep Aiven Running
    and allow a free-hosted backend to finish starting before the workflow.
-4. Run the three primary role logins and **Additional role logins**. Successful
+4. Run the complete collection with all 55 requests selected, one iteration and
+   no data file. Keep numbered folders in order: **01 - Login setup (run first)**
+   must be first and contains all five demo-role logins. Successful
    responses automatically capture the five role-token variables; there is no
    need to copy tokens manually. Failed logins clear the corresponding stale token.
-5. Run workflow folders in order. If authentication/creation fails, resolve that
-   failure before dependent requests. For a full Collection Runner execution,
+5. No separate manual login is needed for a full run. If authentication/creation
+   fails, resolve that failure before dependent requests. For a full Collection Runner execution,
    review each result; do not treat earlier token/data failures as independent bugs.
+
+If an older copy is already imported into Postman, re-import the updated JSON;
+editing the file in this repository does not update Postman's stored copy. In the
+Runner, confirm that the first request is **Admin login - expect 200** under
+**01 - Login setup (run first)**, followed by the other four role logins. A fresh
+import defaults to localhost, so set `baseUrl` again when testing the live backend.
 
 ## Coverage
 

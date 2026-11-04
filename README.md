@@ -255,8 +255,9 @@ to serialize business-rule checks; this demo prioritizes consistency over throug
 
 Import [Postman collection](docs/postman/employee-task-manager.postman_collection.json).
 Set collection `baseUrl` to `http://localhost:8080` or the deployed backend origin
-(without `/api`). Run the primary and additional role logins; successful responses
-automatically save fresh collection tokens. For localhost use Postman desktop app/
+(without `/api`). Run all 55 requests in numbered folder order, starting with
+`01 - Login setup (run first)`. Its five logins automatically save fresh collection
+tokens; no separate manual login is needed. For localhost use Postman desktop app/
 Desktop Agent. The user workflow creates unique test emails and cleans up its new
 accounts with soft deletion; the task workflow deletes its new task. Run in order;
 manual tests change data. Do not export real tokens into committed collections.

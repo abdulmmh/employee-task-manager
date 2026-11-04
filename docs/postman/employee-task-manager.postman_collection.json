@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Employee & Task Management System",
-    "description": "Full API verification collection: authentication, ADMIN user CRUD, scoped task lifecycle, dashboard, PDF reports, team options and health. Set baseUrl to http://localhost:8080 or https://employee-task-manager-api-07j1.onrender.com (no /api suffix). Use the Postman desktop app/Desktop Agent for localhost. Run the primary and additional role logins first; successful responses automatically populate collection token variables. Do not share/export populated tokens. Run user/task workflow folders in order: they create their own records and delete/soft-delete only those records. Fresh unique user emails are generated for each create workflow. Soft-deleted test users remain in history. Seed manager/employee IDs assume the original team relationships; restore demo relationships if manually changed. Clear token values before saving/exporting. Health GET/HEAD require no token. Database-outage tests are automated in the backend; do not power off the shared live database for a collection run.",
+    "description": "Full API verification collection: authentication, ADMIN user CRUD, scoped task lifecycle, dashboard, PDF reports, team options and health. Set baseUrl to http://localhost:8080 or https://employee-task-manager-api-07j1.onrender.com (no /api suffix). Use the Postman desktop app/Desktop Agent for localhost. Run the complete collection in numbered folder order, starting with 01 - Login setup (run first); successful responses automatically populate collection token variables. Do not share/export populated tokens. Run user/task workflow folders in order: they create their own records and delete/soft-delete only those records. Fresh unique user emails are generated for each create workflow. Soft-deleted test users remain in history. Seed manager/employee IDs assume the original team relationships; restore demo relationships if manually changed. Clear token values before saving/exporting. Health GET/HEAD require no token. Database-outage tests are automated in the backend; do not power off the shared live database for a collection run.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -48,329 +48,423 @@
   ],
   "item": [
     {
-      "name": "Admin login - expect 200",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"email\":\"admin@demo.com\",\"password\":\"Admin@123\"}"
-        },
-        "url": "{{baseUrl}}/api/auth/login"
-      },
-      "event": [
+      "name": "01 - Login setup (run first)",
+      "item": [
         {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.collectionVariables.unset(\"adminToken\");"
-            ]
-          }
-        },
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
-              "if (pm.response.code === 200) {",
-              "  const login = pm.response.json();",
-              "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"ADMIN\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
-              "  if (login.role === \"ADMIN\" && typeof login.token === \"string\") pm.collectionVariables.set(\"adminToken\", login.token);",
-              "}"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Manager login - expect 200",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"email\":\"manager@demo.com\",\"password\":\"Manager@123\"}"
-        },
-        "url": "{{baseUrl}}/api/auth/login"
-      },
-      "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.collectionVariables.unset(\"managerToken\");"
-            ]
-          }
+          "name": "Admin login - expect 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"admin@demo.com\",\"password\":\"Admin@123\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"adminToken\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const login = pm.response.json();",
+                  "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"ADMIN\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
+                  "  if (login.role === \"ADMIN\" && typeof login.token === \"string\") pm.collectionVariables.set(\"adminToken\", login.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
-              "if (pm.response.code === 200) {",
-              "  const login = pm.response.json();",
-              "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"MANAGER\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
-              "  if (login.role === \"MANAGER\" && typeof login.token === \"string\") pm.collectionVariables.set(\"managerToken\", login.token);",
-              "}"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Employee login - expect 200",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"email\":\"emp1@demo.com\",\"password\":\"Emp@123\"}"
+          "name": "Manager login - expect 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"manager@demo.com\",\"password\":\"Manager@123\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"managerToken\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const login = pm.response.json();",
+                  "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"MANAGER\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
+                  "  if (login.role === \"MANAGER\" && typeof login.token === \"string\") pm.collectionVariables.set(\"managerToken\", login.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
-        "url": "{{baseUrl}}/api/auth/login"
-      },
-      "event": [
         {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.collectionVariables.unset(\"employeeToken\");"
-            ]
-          }
+          "name": "Employee login - expect 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"emp1@demo.com\",\"password\":\"Emp@123\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"employeeToken\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const login = pm.response.json();",
+                  "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"EMPLOYEE\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
+                  "  if (login.role === \"EMPLOYEE\" && typeof login.token === \"string\") pm.collectionVariables.set(\"employeeToken\", login.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
-              "if (pm.response.code === 200) {",
-              "  const login = pm.response.json();",
-              "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"EMPLOYEE\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
-              "  if (login.role === \"EMPLOYEE\" && typeof login.token === \"string\") pm.collectionVariables.set(\"employeeToken\", login.token);",
-              "}"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin reads user - expect 200, no password",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{adminToken}}"
-          }
-        ],
-        "url": "{{baseUrl}}/api/users/3"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
-              "pm.test(\"No credentials exposed\", function () { const u = pm.response.json(); pm.expect(u).not.to.have.property(\"password\"); pm.expect(u).not.to.have.property(\"passwordHash\"); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Manager denied user access - expect 403",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{managerToken}}"
-          }
-        ],
-        "url": "{{baseUrl}}/api/users/3"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(403); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Employee denied user access - expect 403",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{employeeToken}}"
-          }
-        ],
-        "url": "{{baseUrl}}/api/users/3"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(403); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Missing token - expect 401",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": "{{baseUrl}}/api/users/3"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(401); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Invalid token - expect 401",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer invalid-token"
-          }
-        ],
-        "url": "{{baseUrl}}/api/users/3"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(401); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Wrong password - expect 401",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"email\":\"admin@demo.com\",\"password\":\"WrongPassword\"}"
+          "name": "Other manager login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"manager2@demo.com\", \"password\": \"Manager@123\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"manager2Token\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const login = pm.response.json();",
+                  "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"MANAGER\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
+                  "  if (login.role === \"MANAGER\" && typeof login.token === \"string\") pm.collectionVariables.set(\"manager2Token\", login.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
-        "url": "{{baseUrl}}/api/auth/login"
-      },
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(401); });"
-            ]
-          }
+          "name": "Other employee login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"emp3@demo.com\", \"password\": \"Emp@123\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"employee2Token\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) {",
+                  "  const login = pm.response.json();",
+                  "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"EMPLOYEE\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
+                  "  if (login.role === \"EMPLOYEE\" && typeof login.token === \"string\") pm.collectionVariables.set(\"employee2Token\", login.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "name": "Invalid input - expect 400",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"email\":\"invalid-email\",\"password\":\"\"}"
+      "name": "02 - Authentication and access checks",
+      "item": [
+        {
+          "name": "Admin reads user - expect 200, no password",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/3"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"No credentials exposed\", function () { const u = pm.response.json(); pm.expect(u).not.to.have.property(\"password\"); pm.expect(u).not.to.have.property(\"passwordHash\"); });"
+                ]
+              }
+            }
+          ]
         },
-        "url": "{{baseUrl}}/api/auth/login"
-      },
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(400); });"
-            ]
-          }
+          "name": "Manager denied user access - expect 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/3"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Employee denied user access - expect 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{employeeToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/3"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing token - expect 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/3"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid token - expect 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid-token"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/3"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Wrong password - expect 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"admin@demo.com\",\"password\":\"WrongPassword\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid input - expect 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"invalid-email\",\"password\":\"\"}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin reads absent user - expect 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/999"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "name": "Admin reads absent user - expect 404",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{adminToken}}"
-          }
-        ],
-        "url": "{{baseUrl}}/api/users/999"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"Expected status\", function () { pm.response.to.have.status(404); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin User Management",
+      "name": "03 - Admin User Management",
       "item": [
         {
           "name": "List users page 1 - expect 200",
@@ -695,97 +789,7 @@
       "description": "Run in order after ADMIN login. Creates a unique employee and additional admin, tests edit/delete/access, then soft-deletes those new accounts. Seed users are not modified. Repeated runs leave soft-deleted history and change totalUsers."
     },
     {
-      "name": "Additional role logins",
-      "description": "Run before cross-team task/report tests; stores manager2Token and employee2Token automatically.",
-      "item": [
-        {
-          "name": "Other manager login",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "body": {
-              "mode": "raw",
-              "raw": "{\"email\": \"manager2@demo.com\", \"password\": \"Manager@123\"}"
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.collectionVariables.unset(\"manager2Token\");"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
-                  "if (pm.response.code === 200) {",
-                  "  const login = pm.response.json();",
-                  "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"MANAGER\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
-                  "  if (login.role === \"MANAGER\" && typeof login.token === \"string\") pm.collectionVariables.set(\"manager2Token\", login.token);",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Other employee login",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "body": {
-              "mode": "raw",
-              "raw": "{\"email\": \"emp3@demo.com\", \"password\": \"Emp@123\"}"
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.collectionVariables.unset(\"employee2Token\");"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Expected status\", function () { pm.response.to.have.status(200); });",
-                  "if (pm.response.code === 200) {",
-                  "  const login = pm.response.json();",
-                  "  pm.test(\"Login contract\", function () { pm.expect(login.role).to.eql(\"EMPLOYEE\"); pm.expect(login.name).to.be.a(\"string\").and.not.empty; pm.expect(login.token).to.be.a(\"string\").and.not.empty; pm.expect(login).not.to.have.property(\"password\"); });",
-                  "  if (login.role === \"EMPLOYEE\" && typeof login.token === \"string\") pm.collectionVariables.set(\"employee2Token\", login.token);",
-                  "}"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Task management",
+      "name": "04 - Task management",
       "description": "Run in order. employeeToken = emp1@demo.com (id 3), employee2Token = emp3@demo.com (id 6), managerToken = manager@demo.com (id 2), manager2Token = manager2@demo.com (id 5). Use fresh tokens. This folder creates and deletes its own test task; it does not edit seeded tasks.",
       "item": [
         {
@@ -1265,7 +1269,7 @@
       ]
     },
     {
-      "name": "Dashboard",
+      "name": "05 - Dashboard",
       "description": "Use fresh role tokens. Compare totalTasks with task-list totalElements for the same account. Manual CRUD can change baseline seed counts.",
       "item": [
         {
@@ -1370,7 +1374,7 @@
       ]
     },
     {
-      "name": "PDF reports",
+      "name": "06 - PDF reports",
       "description": "Use Send and Download / Save Response to save successful PDF responses. Open each PDF and check scope, names, wrapping and page numbers. Manager report includes all tasks assigned to current team EMPLOYEEs, including ADMIN-assigned tasks; task-list/dashboard scope remains own-assigned. Manager1 should see the seed ADMIN-assigned task for employee 4 if its team relationship has not changed. Never commit tokens or real reports.",
       "item": [
         {
@@ -1494,7 +1498,7 @@
       ]
     },
     {
-      "name": "Team employee lookup",
+      "name": "07 - Team employee lookup",
       "description": "Assignee dropdown support. MANAGER sees only active own-team EMPLOYEEs; ADMIN sees all active EMPLOYEEs. Responses contain id/name only. managerId query cannot override scope.",
       "item": [
         {
@@ -1593,7 +1597,7 @@
       ]
     },
     {
-      "name": "Health monitoring",
+      "name": "08 - Health monitoring",
       "description": "Read-only public probes. Keep Aiven Running for these expected-200 requests. HEAD returns no body; database failures return 503. No authentication header is used.",
       "item": [
         {
