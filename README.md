@@ -231,7 +231,7 @@ record, 409 business conflict and 503 service unavailability.
 
 ## Verification and Postman
 
-Latest developer-run results: **161 backend tests pass**, **39 frontend tests pass**,
+Latest developer-run results: **164 backend tests pass**, **39 frontend tests pass**,
 and production frontend build **457.98 kB** (November 4, 2026). Local/database/live
 role workflows, PDF reports and health monitoring were also checked during development.
 Any later deployment still needs its own smoke check.
@@ -252,10 +252,13 @@ to serialize business-rule checks; this demo prioritizes consistency over throug
 
 Import [Postman collection](docs/postman/employee-task-manager.postman_collection.json).
 Set collection `baseUrl` to `http://localhost:8080` or the deployed backend origin
-(without `/api`). Run the role logins, then place fresh tokens in their collection
-variables. For localhost use Postman desktop app/Desktop Agent. Use unique test
-emails and follow the collection's creation/status/deletion order; manual tests
-change data. Do not export real tokens into committed collections.
+(without `/api`). Run the primary and additional role logins; successful responses
+automatically save fresh collection tokens. For localhost use Postman desktop app/
+Desktop Agent. The user workflow creates unique test emails and cleans up its new
+accounts with soft deletion; the task workflow deletes its new task. Run in order;
+manual tests change data. Do not export real tokens into committed collections.
+See the [Postman guide](docs/postman/README.md) for variables, data assumptions and
+execution instructions for the 55 requests.
 
 ## Deployment, diagrams and media
 

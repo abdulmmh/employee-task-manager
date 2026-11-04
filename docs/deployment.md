@@ -114,6 +114,12 @@ default Hikari timeout (30 seconds); it is not a three-second end-to-end guarant
 A database outage does not require intentionally powering off the live service
 to test alerts; unit and HTTP tests simulate the failure response.
 
+If a request cannot begin its JPA transaction because no database connection is
+available, the API maps `CannotCreateTransactionException` to HTTP503 with a safe
+data-service-unavailable message. The underlying exception is logged server-side,
+not exposed in JSON. This is distinct from the frontend's 60-second no-response
+timeout and from unrelated unexpected failures that remain HTTP500.
+
 After deploying and checking the endpoint manually, create an UptimeRobot
 HTTP/website monitor for the actual backend URL ending in `/api/health`, using
 the Free plan's five-minute interval. The default HEAD method works; use GET if
@@ -138,7 +144,7 @@ Successful local builds do not prove a free-tier deployment is ready.
 
 ## Verification checkpoint
 
-Latest developer-run checks: 161 backend tests, 39 frontend tests, all passing;
+Latest developer-run checks: 164 backend tests, 39 frontend tests, all passing;
 production frontend build 457.98 kB (November 4, 2026). Backend package refactoring
 was followed by clean tests, database startup, login, list, PDF and health checks.
 Mocks do not prove real MySQL concurrency behavior. Keep live acceptance separate

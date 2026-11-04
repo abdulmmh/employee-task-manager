@@ -15,6 +15,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -91,6 +92,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         LOG.error("Database operation failed.", exception);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
             .body(ApiError.of(HttpStatus.SERVICE_UNAVAILABLE, "Data service is temporarily unavailable."));
+    }
+
+    @ExceptionHandler(CannotCreateTransactionException.class)
+    public ResponseEntity<ApiError> handleTransactionUnavailable(CannotCreateTransactionException exception) {
+        LOG.error("Database transaction could not be started.", exception);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .cacheControl(org.springframework.http.CacheControl.noStore())
+            .body(ApiError.of(HttpStatus.SERVICE_UNAVAILABLE,
+                "Data service is temporarily unavailable. Please try again shortly."));
     }
 
     @ExceptionHandler(Exception.class)
