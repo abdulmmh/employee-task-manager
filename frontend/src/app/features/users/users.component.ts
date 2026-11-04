@@ -57,10 +57,11 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.form.markAllAsTouched(); if (this.form.invalid || this.busy) return;
     const input = this.form.value as Omit<UserInput, 'active'>;
     if (!input.fullName.trim()) { this.form.get('fullName')!.setErrors({ required: true }); return; }
+    const creating = !this.editing;
     this.busy = true; this.formError = '';
     this.api.saveUser({ ...input, active: true, fullName: input.fullName.trim(), email: input.email.trim() }, this.editing?.id)
       .pipe(takeUntil(this.destroyed$), finalize(() => this.busy = false)).subscribe({
-        next: () => { this.busy = false; this.close(); this.toast.show('success', 'User saved successfully.'); this.load(); },
+        next: () => { if (creating) this.page = 0; this.busy = false; this.close(); this.toast.show('success', 'User saved successfully.'); this.load(); },
         error: error => { applyServerErrors(this.form, error); this.formError = errorMessage(error); }
       });
   }

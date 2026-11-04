@@ -195,7 +195,10 @@ validated; responses never expose persistence entities or password hashes.
 | GET / HEAD | `/api/health` | Public DB probe: 200 UP / 503 DOWN; HEAD has no body |
 
 Pagination is zero-based: `page=0&size=10`, maximum size 100. Page responses contain
-`content`, `page`, `size`, `totalElements`, `totalPages`. Users accept `search`
+`content`, `page`, `size`, `totalElements`, `totalPages`. Users are ordered by ID
+descending (newest first); successful UI creation reloads page zero while editing
+preserves the current page. Existing search/role filters remain applied.
+Users accept `search`
 (name/email), `role`, `active`. Tasks accept `status`, `priority`, `assignee`,
 `role` (assignee's current role). Filters only narrow the authenticated scope.
 Team options support name `search`. The UI shows active users and active assignee
@@ -231,8 +234,8 @@ record, 409 business conflict and 503 service unavailability.
 
 ## Verification and Postman
 
-Latest developer-run results: **164 backend tests pass**, **39 frontend tests pass**,
-and production frontend build **457.98 kB** (November 4, 2026). Local/database/live
+Latest developer-run results: **164 backend tests pass**, **41 frontend tests pass**,
+and production frontend build **458.03 kB** (November 4, 2026). Local/database/live
 role workflows, PDF reports and health monitoring were also checked during development.
 Any later deployment still needs its own smoke check.
 

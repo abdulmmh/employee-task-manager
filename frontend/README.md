@@ -25,7 +25,7 @@ npm.cmd run build
 npm.cmd run test:ci
 ```
 
-The developer verified a **457.98 kB** production build and **39 passing tests** on
+The developer verified a **458.03 kB** production build and **41 passing tests** on
 November 4, 2026. ChromeHeadless tests require Chrome. No lint script is configured.
 
 ## Configuration
@@ -53,6 +53,9 @@ The token is held in sessionStorage and cleared on expiry/logout/current-session
 
 - ADMIN Users: name/email search, role filtering, pagination, create/edit and Delete.
   The UI lists active users; backend DELETE preserves records/history with active=false.
+  New users appear first through descending-ID ordering. Successful creation returns
+  to page zero; editing preserves the current page. Existing filters stay applied,
+  so a new user must match them to appear.
 - Tasks: scoped list/details, pagination, status/priority/assignee filters, assignment,
   edit, EMPLOYEE status progression and ADMIN delete. Only PENDING assignees can change.
 - ADMIN **Assignee role** filter uses the existing backend `role` parameter (current
@@ -91,6 +94,7 @@ retry. There is no automatic retry. Success, error and component destruction
 clean up the request/waiting timers. Wrong-password errors remain inline.
 
 Seven additional regression tests cover timing boundaries, success before/after
-the waiting threshold, 401 handling, cancellation and manual retry. All 39 frontend
-tests and the production build passed after this addition. Deployment and live
+the waiting threshold, 401 handling, cancellation and manual retry. With the two
+newest-user pagination regressions, all 41 frontend tests and the production build
+passed. Deployment and live
 smoke verification remain separate checks.

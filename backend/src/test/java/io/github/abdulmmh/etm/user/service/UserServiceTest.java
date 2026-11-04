@@ -328,7 +328,7 @@ class UserServiceTest {
     @Test
     void returnsPaginationMetadataAndDtos() {
         var other = user(4, Role.EMPLOYEE);
-        var page = new PageImpl<>(List.of(employee, other), PageRequest.of(1, 10), 12);
+        var page = new PageImpl<>(List.of(other, employee), PageRequest.of(1, 10), 12);
         when(userRepository.findAll(org.mockito.ArgumentMatchers.<Specification<User>>any(), any(Pageable.class)))
             .thenReturn(page);
 
@@ -337,7 +337,13 @@ class UserServiceTest {
         assertThat(response.page()).isEqualTo(1);
         assertThat(response.totalElements()).isEqualTo(12);
         assertThat(response.totalPages()).isEqualTo(2);
-        assertThat(response.content()).extracting(UserResponse::id).containsExactly(3L, 4L);
+        assertThat(response.content()).extracting(UserResponse::id).containsExactly(4L, 3L);
+        var requestedPage = ArgumentCaptor.forClass(Pageable.class);
+        verify(userRepository).findAll(org.mockito.ArgumentMatchers.<Specification<User>>any(), requestedPage.capture());
+        assertThat(requestedPage.getValue().getPageNumber()).isEqualTo(1);
+        assertThat(requestedPage.getValue().getPageSize()).isEqualTo(10);
+        assertThat(requestedPage.getValue().getSort().getOrderFor("id")).isNotNull();
+        assertThat(requestedPage.getValue().getSort().getOrderFor("id").isDescending()).isTrue();
     }
 
     @Test

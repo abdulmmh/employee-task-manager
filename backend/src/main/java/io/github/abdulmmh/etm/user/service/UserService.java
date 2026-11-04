@@ -43,7 +43,7 @@ public class UserService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Search must be at most 150 characters.");
         }
         var users = userRepository.findAll(UserSpecifications.matching(search, role, active),
-            PageRequest.of(page, size, Sort.by("id").ascending()));
+            PageRequest.of(page, size, Sort.by("id").descending()));
         return PageResponse.from(users.map(this::toResponse));
     }
 
